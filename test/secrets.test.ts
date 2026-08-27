@@ -36,6 +36,7 @@ class FakeMemento {
 
 class FakeWorkspaceConfig {
   private map = new Map<string, any>();
+  public shouldFailUpdate = false;
 
   constructor(initial: Record<string, any> = {}) {
     for (const [k, v] of Object.entries(initial)) {
@@ -48,6 +49,9 @@ class FakeWorkspaceConfig {
   }
 
   async update(key: string, value: any): Promise<void> {
+    if (this.shouldFailUpdate) {
+      throw new Error('Permission denied or read-only settings');
+    }
     if (value === undefined) {
       this.map.delete(key);
     } else {
@@ -71,13 +75,13 @@ describe('KeyStore', () => {
 });
 
 describe('migrateLegacyKeys', () => {
-  it('migrates legacy keys when present and not already migrated', async () => {
+  it('migrates legacy keys when present and cleans up successfully', async () => {
     const storage = new FakeSecretStorage();
     const keyStore = new KeyStore(storage as any);
     const memento = new FakeMemento();
     const legacyConfig = new FakeWorkspaceConfig({
       OPENAI_API_KEY: 'sk-legacy-123',
-      GEMINI_API_KEY: 'AIza-legacy-456'
+      GEMINI_API_KEY: 'AIza-legacy-456',
     });
 
     const migrated = await migrateLegacyKeys(keyStore, memento as any, legacyConfig as any);
@@ -87,11 +91,28 @@ describe('migrateLegacyKeys', () => {
     expect(await keyStore.get('gemini')).toBe('AIza-legacy-456');
     expect(await keyStore.get('claude')).toBeUndefined();
 
-    // Verify migration flag set
+    // Verify migration flag set when cleanup succeeds
     expect(memento.get('aiCommitMessage.migratedLegacyKeys')).toBe(true);
 
     // Second run should be a no-op
     const migratedAgain = await migrateLegacyKeys(keyStore, memento as any, legacyConfig as any);
     expect(migratedAgain).toBe(false);
+  });
+
+  it('does NOT mark migration complete if clearing legacy config fails', async () => {
+    const storage = new FakeSecretStorage();
+    const keyStore = new KeyStore(storage as any);
+    const memento = new FakeMemento();
+    const legacyConfig = new FakeWorkspaceConfig({
+      OPENAI_API_KEY: 'sk-legacy-123',
+    });
+    legacyConfig.shouldFailUpdate = true;
+
+    const migrated = await migrateLegacyKeys(keyStore, memento as any, legacyConfig as any);
+    expect(migrated).toBe(true);
+    expect(await keyStore.get('openai')).toBe('sk-legacy-123');
+
+    // Migration flag must NOT be set because cleanup failed
+    expect(memento.get('aiCommitMessage.migratedLegacyKeys')).toBeUndefined();
   });
 });

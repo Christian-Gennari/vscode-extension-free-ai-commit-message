@@ -9,10 +9,13 @@ export class KeyStore {
     if (!this.instance && secrets) {
       this.instance = new KeyStore(secrets);
     }
-    return this.instance || new KeyStore(secrets!);
+    if (!this.instance) {
+      throw new Error('KeyStore has not been initialized with SecretStorage.');
+    }
+    return this.instance;
   }
 
-  static setInstance(instance: KeyStore): void {
+  static setInstance(instance?: KeyStore): void {
     this.instance = instance;
   }
 
@@ -46,24 +49,32 @@ export async function migrateLegacyKeys(
   const legacyMap: Record<string, string> = {
     openai: 'OPENAI_API_KEY',
     gemini: 'GEMINI_API_KEY',
-    claude: 'CLAUDE_API_KEY'
+    claude: 'CLAUDE_API_KEY',
   };
 
-  let migratedCount = 0;
+  let allCleaned = true;
+  let migratedAny = false;
+
   for (const [profile, legacySetting] of Object.entries(legacyMap)) {
     const existingSecret = await keyStore.get(profile);
     const legacyKey = legacyConfig.get<string>(legacySetting);
-    if (!existingSecret && legacyKey && legacyKey.trim()) {
-      await keyStore.set(profile, legacyKey.trim());
+
+    if (legacyKey && legacyKey.trim()) {
+      if (!existingSecret) {
+        await keyStore.set(profile, legacyKey.trim());
+        migratedAny = true;
+      }
       try {
         await legacyConfig.update(legacySetting, undefined, vscode.ConfigurationTarget.Global);
       } catch {
-        // ignore errors clearing configuration
+        allCleaned = false;
       }
-      migratedCount++;
     }
   }
 
-  await globalState.update(migrationKey, true);
-  return migratedCount > 0;
+  if (allCleaned) {
+    await globalState.update(migrationKey, true);
+  }
+
+  return migratedAny;
 }
