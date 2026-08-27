@@ -10,6 +10,9 @@ prompt/**
 .prettierrc
 vitest.config.ts
 eslint.config.mjs
+webpack.config.js
 **/tsconfig.json
 **/*.map
 **/*.ts
+*.vsix
+*.log

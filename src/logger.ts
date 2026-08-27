@@ -35,24 +35,60 @@ export class Logger {
     }
   }
 
+  private static redactString(value: string): string {
+    return value
+      .replace(
+        /([?&](?:key|api_key|apikey|token|access_token)=)[^&#\s]+/gi,
+        '$1[REDACTED]'
+      )
+      .replace(
+        /(authorization\s*:\s*bearer\s+)[^\s,]+/gi,
+        '$1[REDACTED]'
+      )
+      .replace(
+        /(bearer\s+)[^\s,]+/gi,
+        '$1[REDACTED]'
+      );
+  }
+
+  private static sanitize(value: any, keyName = ''): any {
+    if (/key|auth|token|secret|password|bearer|header/i.test(keyName)) {
+      return '[REDACTED]';
+    }
+
+    if (typeof value === 'string') {
+      return this.redactString(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitize(item));
+    }
+
+    if (value && typeof value === 'object') {
+      const output: Record<string, unknown> = {};
+      for (const [key, child] of Object.entries(value)) {
+        output[key] = this.sanitize(child, key);
+      }
+      return output;
+    }
+
+    return value;
+  }
+
   private static formatArg(a: any): string {
     if (a instanceof Error) {
-      return `${a.name}: ${a.message}`;
+      return `${a.name}: ${this.redactString(a.message)}`;
     }
-    if (typeof a === 'object' && a !== null) {
-      try {
-        const sanitized: Record<string, any> = { ...a };
-        for (const k of Object.keys(sanitized)) {
-          if (/key|auth|token|secret|password|bearer|header/i.test(k)) {
-            sanitized[k] = '[REDACTED]';
-          }
-        }
-        return JSON.stringify(sanitized);
-      } catch {
-        return '[Object]';
-      }
+
+    if (typeof a === 'string') {
+      return this.redactString(a);
     }
-    return String(a);
+
+    try {
+      return JSON.stringify(this.sanitize(a));
+    } catch {
+      return '[Object]';
+    }
   }
 
   static show() {

@@ -7,13 +7,14 @@ export async function generateClaude(
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
   temperature?: number,
   profileName: string = 'claude',
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
+  timeoutMs: number = 120000
 ): Promise<string> {
   if (!apiKey) {
     throw new Error(`No API key stored for profile "${profileName}". Run "Free AI Commit: Set API Key".`);
   }
 
-  const anthropic = new Anthropic({ apiKey });
+  const anthropic = new Anthropic({ apiKey, timeout: timeoutMs });
 
   const systemMessage = messages.find((m) => m.role === 'system')?.content;
   const userMessages = messages
@@ -36,9 +37,14 @@ export async function generateClaude(
     }
   );
 
-  const contentBlock = response.content[0];
-  if (contentBlock && contentBlock.type === 'text') {
-    return contentBlock.text;
+  const text = response.content
+    .filter((block) => block.type === 'text')
+    .map((block: any) => block.text)
+    .join('');
+
+  if (!text) {
+    throw new Error('No commit message returned from Claude.');
   }
-  throw new Error('No commit message returned from Claude.');
+
+  return text;
 }

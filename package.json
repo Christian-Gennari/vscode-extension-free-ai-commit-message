@@ -39,7 +39,8 @@
     "onCommand:aiCommitMessage.generateCommitMsg",
     "onCommand:aiCommitMessage.selectProfile",
     "onCommand:aiCommitMessage.setApiKey",
-    "onCommand:aiCommitMessage.deleteApiKey"
+    "onCommand:aiCommitMessage.deleteApiKey",
+    "onCommand:aiCommitMessage.showAvailableModels"
   ],
   "contributes": {
     "commands": [
@@ -62,6 +63,11 @@
       {
         "command": "aiCommitMessage.selectProfile",
         "title": "Switch Active AI Profile",
+        "category": "Free AI Commit"
+      },
+      {
+        "command": "aiCommitMessage.showAvailableModels",
+        "title": "Select Model for Active Profile",
         "category": "Free AI Commit"
       }
     ],
@@ -205,6 +211,13 @@
           "minimum": 0,
           "maximum": 2,
           "description": "Sampling temperature for all providers."
+        },
+        "aiCommitMessage.requestTimeoutMs": {
+          "type": "number",
+          "default": 120000,
+          "minimum": 1000,
+          "maximum": 600000,
+          "description": "Maximum time in milliseconds to wait for an AI provider response."
         }
       }
     }
@@ -212,6 +225,7 @@
   "main": "./dist/extension.js",
   "scripts": {
     "build": "webpack --mode production --devtool hidden-source-map",
+    "check": "npm run test && npm run build && npm run package",
     "compile": "webpack",
     "compile-tests": "tsc -p . --outDir out",
     "lint": "eslint src",

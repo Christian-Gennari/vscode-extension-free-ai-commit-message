@@ -56,6 +56,7 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
 - **`Free AI Commit: Switch Active AI Profile`**: Quickly switch between configured providers.
 - **`Free AI Commit: Set API Key for Active Profile`**: Securely save or update your API key.
 - **`Free AI Commit: Delete API Key for Active Profile`**: Remove stored credential for active profile from keychain.
+- **`Free AI Commit: Select Model for Active Profile`**: Browse and select available models for OpenAI-compatible providers.
 
 ---
 
@@ -69,9 +70,10 @@ Open VS Code Settings (`Ctrl+,` / `Cmd+,`) and search for **`Free AI Commit`**:
 | `aiCommitMessage.language` | `"English"` | Output language (supports 19 languages). |
 | `aiCommitMessage.enableGitmoji` | `false` | Prefix conventional commit types with Gitmoji symbols (e.g. `feat:`, `fix:`). |
 | `aiCommitMessage.customSystemPrompt` | `""` | Optional system prompt override. |
-| `aiCommitMessage.maxDiffCharacters` | `60000` | Safety limit on diff size sent to LLM. |
+| `aiCommitMessage.maxDiffCharacters` | `60000` | Safety limit on diff size sent to LLM (minimum 1000). |
 | `aiCommitMessage.diffOverflowStrategy` | `"truncate"` | `truncate` keeps diff head+tail; `fail` aborts with error. |
 | `aiCommitMessage.temperature` | `0.7` | Sampling temperature (0.0 to 2.0). |
+| `aiCommitMessage.requestTimeoutMs` | `120000` | Request timeout in milliseconds (1s to 600s). |
 | `aiCommitMessage.profiles` | `{}` | Custom endpoints and model overrides. |
 
 ### Custom Endpoints (vLLM, LM Studio, Private Proxies)
@@ -95,10 +97,11 @@ Add custom profiles to your `settings.json`:
 ## Security & Privacy
 
 - **Encrypted Secret Storage:** API keys are stored exclusively in VS Code's OS-encrypted credential store (`SecretStorage`). They are never written to `settings.json` or committed to source control.
-- **Direct Client-to-API:** Diff data travels directly from your machine to the chosen provider API. No telemetry or middleman proxy servers are used.
+- **Direct Client-to-API:** Diff data travels directly from your machine to the chosen provider API. No intermediate telemetry or middleman proxy servers are used.
+- **Privacy Notice:** When using cloud providers, staged diffs (which may include source code and comments) are sent to the provider endpoint according to their respective privacy terms. If complete privacy is required, use **Ollama** on `localhost`, where zero data leaves your local machine.
 
 ---
 
 ## License
 
-MIT License — see [LICENSE](license.txt) for details. Forked from `sitoi/ai-commit`.
+MIT License — see [license.txt](license.txt) for details. Forked from `sitoi/ai-commit`.

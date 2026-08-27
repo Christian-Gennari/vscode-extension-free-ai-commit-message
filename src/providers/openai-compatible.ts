@@ -7,7 +7,8 @@ export async function generateOpenAICompatible(
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
   temperature?: number,
   profileName: string = 'openai',
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
+  timeoutMs: number = 120000
 ): Promise<string> {
   const effectiveKey =
     apiKey || (profile.baseUrl && isLocalhost(profile.baseUrl) ? 'dummy-key' : undefined);
@@ -19,6 +20,7 @@ export async function generateOpenAICompatible(
   const client = new OpenAI({
     apiKey: effectiveKey,
     baseURL: profile.baseUrl || undefined,
+    timeout: timeoutMs,
   });
 
   const completion = await client.chat.completions.create(

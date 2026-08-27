@@ -154,7 +154,8 @@ describe('providers', () => {
 
       expect(result).toBe('docs: update readme');
       expect(sendMessageMock).toHaveBeenCalledWith(
-        'Additional context for the changes: Ticket-42\n\nstaged diff content'
+        'Additional context for the changes: Ticket-42\n\nstaged diff content',
+        expect.anything()
       );
     });
   });

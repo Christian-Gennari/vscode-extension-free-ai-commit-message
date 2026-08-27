@@ -12,6 +12,7 @@ export enum ConfigKeys {
   MAX_DIFF_CHARACTERS = 'maxDiffCharacters',
   DIFF_OVERFLOW_STRATEGY = 'diffOverflowStrategy',
   TEMPERATURE = 'temperature',
+  REQUEST_TIMEOUT_MS = 'requestTimeoutMs',
 }
 
 export class ConfigurationManager {
