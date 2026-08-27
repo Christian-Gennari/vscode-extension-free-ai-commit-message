@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate clean, conventional Git commit messages using free AI models (Gemini 3.5 Flash Lite, Groq, Ollama, OpenRouter) or bring your own key (DeepSeek, OpenAI, Claude).",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
