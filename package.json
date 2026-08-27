@@ -1,22 +1,25 @@
 {
-  "name": "ai-commit",
-  "displayName": "AI Commit",
-  "description": "Use OpenAI/Gemini/Claude/Azure API to review Git changes, generate conventional commit messages that meet the conventions, simplify the commit process, and keep the commit conventions consistent.",
-  "version": "0.1.2",
+  "name": "free-ai-commit-message",
+  "displayName": "Free AI Commit Message",
+  "description": "Generate Conventional Commit messages from staged git changes. Bring-your-own-key: works with Groq, OpenRouter, DeepSeek, Ollama, OpenAI, Gemini and Claude. Free to use.",
+  "version": "0.1.0",
   "engines": {
-    "node": ">=16",
+    "node": ">=18",
     "vscode": "^1.77.0"
   },
   "categories": [
     "Other"
   ],
   "keywords": [
-    "Azure",
     "OpenAI",
     "ChatGPT",
     "Gemini",
     "Claude",
     "Anthropic",
+    "Groq",
+    "Ollama",
+    "OpenRouter",
+    "DeepSeek",
     "GitEmoji",
     "Git Commit",
     "Conventional Commits",
@@ -26,33 +29,52 @@
     "AI Commit",
     "Auto Commit"
   ],
-  "publisher": "sitoi",
-  "repository": "https://github.com/sitoi/ai-commit",
-  "icon": "images/logo.png",
+  "publisher": "ChristianGennari",
+  "repository": "",
   "activationEvents": [
-    "onCommand:ai-commit"
+    "onCommand:aiCommitMessage.generateMessage",
+    "onCommand:aiCommitMessage.selectProfile",
+    "onCommand:aiCommitMessage.setApiKey"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "extension.ai-commit",
-        "icon": {
-          "dark": "images/icon.svg",
-          "light": "images/icon.svg"
-        },
-        "title": "AI Commit"
+        "command": "aiCommitMessage.generateMessage",
+        "icon": "$(git-commit)",
+        "title": "Generate Commit Message"
       },
       {
-        "command": "ai-commit.showAvailableModels",
-        "title": "Show Available OpenAI Models"
+        "command": "aiCommitMessage.selectProfile",
+        "title": "Select Provider Profile"
+      },
+      {
+        "command": "aiCommitMessage.setApiKey",
+        "title": "Set API Key for Active Profile"
+      },
+      {
+        "command": "aiCommitMessage.showAvailableModels",
+        "title": "Show Available Models"
       }
     ],
     "configuration": {
+      "title": "Free AI Commit Message",
       "properties": {
-        "ai-commit.AI_COMMIT_LANGUAGE": {
+        "aiCommitMessage.activeProfile": {
+          "type": "string",
+          "default": "openai",
+          "description": "Name of the active provider profile (see aiCommitMessage.profiles)."
+        },
+        "aiCommitMessage.profiles": {
+          "type": "object",
+          "default": {},
+          "description": "Provider profiles. Each entry: { kind: 'openai-compatible'|'gemini'|'claude', baseUrl?, model, temperature? }. API keys are stored separately in VS Code secret storage."
+        },
+        "aiCommitMessage.language": {
+          "type": "string",
           "default": "English",
-          "description": "Commit message language",
           "enum": [
+            "English",
+            "Swedish",
             "Simplified Chinese",
             "Traditional Chinese",
             "Japanese",
@@ -64,154 +86,53 @@
             "Dutch",
             "Portuguese",
             "Vietnamese",
-            "English",
             "Spanish",
-            "Swedish",
             "Russian",
             "Bahasa",
             "Polish",
             "Turkish",
             "Thai"
           ],
-          "enumDescriptions": [
-            "简体中文",
-            "繁體中文",
-            "にほんご",
-            "한국어",
-            "česky",
-            "Deutsch",
-            "française",
-            "italiano",
-            "Nederlands",
-            "português",
-            "tiếng Việt",
-            "english",
-            "español",
-            "Svenska",
-            "русский",
-            "bahasa",
-            "Polski",
-            "Turkish",
-            "ไทย"
-          ],
-          "type": "string"
+          "description": "Commit message language."
         },
-        "ai-commit.AZURE_API_VERSION": {
-          "default": "",
-          "description": "AZURE API VERSION",
-          "type": "string"
+        "aiCommitMessage.enableGitmoji": {
+          "type": "boolean",
+          "default": false,
+          "description": "Prefix commit types with gitmoji emoji. Defaults to plain Conventional Commits when off."
         },
-        "ai-commit.OPENAI_API_KEY": {
-          "default": "",
-          "description": "OpenAI API Key",
-          "type": "string"
-        },
-        "ai-commit.OPENAI_BASE_URL": {
-          "default": "",
-          "description": "OpenAI BASE URL",
-          "type": "string"
-        },
-        "ai-commit.OPENAI_MODEL": {
-          "default": "gpt-4o",
-          "description": "OpenAI MODEL, you can select a model from the list by running the 'Show Available OpenAI Models' command",
-          "type": "string"
-        },
-        "ai-commit.AI_COMMIT_SYSTEM_PROMPT": {
+        "aiCommitMessage.customSystemPrompt": {
           "type": "string",
           "default": "",
-          "description": "Custom system prompt for generating commit messages"
+          "description": "Optional custom system prompt. Replaces the generated default prompt entirely. Use '\\n' for newlines."
         },
-        "ai-commit.OPENAI_TEMPERATURE": {
+        "aiCommitMessage.maxDiffCharacters": {
           "type": "number",
-          "default": 0.7,
-          "minimum": 0,
-          "maximum": 2,
-          "description": "OpenAI temperature setting (0-2). Higher values make output more random, lower values more deterministic."
+          "default": 60000,
+          "minimum": 1000,
+          "description": "Hard cap on diff bytes sent to the provider."
         },
-        "ai-commit.OPENAI_API_TYPE": {
+        "aiCommitMessage.diffOverflowStrategy": {
           "type": "string",
-          "default": "completion",
-          "description": "Choose OpenAI API: Chat Completions API or Responses API",
-          "enum": ["completion", "response"],
-          "enumDescriptions": [
-            "Chat Completions API (default)",
-            "Responses API (supports reasoning models)"
-          ]
-        },
-        "ai-commit.OPENAI_REASONING_EFFORT": {
-          "type": "string",
-          "default": "medium",
-          "description": "Reasoning effort for the Responses API (only applies when OPENAI_API_TYPE is 'response')",
-          "enum": ["minimal", "low", "medium", "high"],
-          "enumDescriptions": [
-            "Minimal reasoning effort",
-            "Low reasoning effort",
-            "Medium reasoning effort (default)",
-            "High reasoning effort"
-          ]
-        },
-        "ai-commit.OPENAI_TEXT_VERBOSITY": {
-          "type": "string",
-          "default": "medium",
-          "description": "Output verbosity for the Responses API — controls max output tokens: low (~1000), medium (~4000), high (~16000)",
-          "enum": ["low", "medium", "high"],
-          "enumDescriptions": [
-            "Low verbosity (~1000 tokens)",
-            "Medium verbosity (~4000 tokens, default)",
-            "High verbosity (~16000 tokens)"
-          ]
-        },
-        "ai-commit.AI_PROVIDER": {
-          "type": "string",
-          "default": "openai",
-          "description": "AI Provider to use (OpenAI, Gemini, or Claude)",
+          "default": "truncate",
           "enum": [
-            "openai",
-            "gemini",
-            "claude"
-          ]
+            "truncate",
+            "fail"
+          ],
+          "description": "'truncate' keeps head+tail of the diff with a warning; 'fail' aborts with an error."
         },
-        "ai-commit.GEMINI_API_KEY": {
-          "type": "string",
-          "default": "",
-          "description": "Gemini API Key"
-        },
-        "ai-commit.GEMINI_MODEL": {
-          "type": "string",
-          "default": "gemini-2.0-flash-001",
-          "description": "Gemini Model to use"
-        },
-        "ai-commit.GEMINI_TEMPERATURE": {
+        "aiCommitMessage.temperature": {
           "type": "number",
           "default": 0.7,
           "minimum": 0,
           "maximum": 2,
-          "description": "Gemini temperature setting (0-2). Controls randomness."
-        },
-        "ai-commit.CLAUDE_API_KEY": {
-          "type": "string",
-          "default": "",
-          "description": "Claude API Key (optional). Leave empty to use Claude CLI (authenticated via 'claude setup-token'), or provide an Anthropic API key for direct API access."
-        },
-        "ai-commit.CLAUDE_MODEL": {
-          "type": "string",
-          "default": "claude-sonnet-4-5-20250929",
-          "description": "Claude Model to use"
-        },
-        "ai-commit.CLAUDE_TEMPERATURE": {
-          "type": "number",
-          "default": 0.7,
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Claude temperature setting (0-1). Controls randomness."
+          "description": "Sampling temperature for all providers."
         }
-      },
-      "title": "AI Commit"
+      }
     },
     "menus": {
       "scm/title": [
         {
-          "command": "extension.ai-commit",
+          "command": "aiCommitMessage.generateMessage",
           "group": "navigation"
         }
       ]
@@ -223,28 +144,26 @@
     "compile": "webpack",
     "compile-tests": "tsc -p . --outDir out",
     "lint": "eslint src --ext ts",
-    "package": "vsce package --no-dependencies",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "package": "vsce package --no-dependencies --allow-missing-repository",
     "publish": "vsce publish --no-dependencies",
-    "test": "node ./out/test/runTest.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "vscode:prepublish": "npm run build",
-    "watch": "webpack --watch",
-    "watch-tests": "tsc -p . -w --outDir out"
+    "watch": "webpack --watch"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^9.0.0",
-    "@types/mocha": "^10.0.10",
     "@types/node": "25.x",
     "@types/vscode": "^1.77.0",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
-    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.2",
     "eslint": "^10.3.0",
     "glob": "^13.0.6",
-    "mocha": "^11.7.5",
     "ts-loader": "^9.5.7",
     "typescript": "^6.0.3",
+    "vitest": "^3.2.4",
     "webpack": "^5.106.2",
     "webpack-cli": "^7.0.2"
   },
@@ -254,9 +173,6 @@
     "fs-extra": "^11.3.4",
     "openai": "^6.36.0",
     "simple-git": "^3.36.0"
-  },
-  "resolutions": {
-    "@types/node": "16.x"
   },
   "license": "MIT"
 }
