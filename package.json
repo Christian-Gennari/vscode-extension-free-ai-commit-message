@@ -30,7 +30,10 @@
     "Auto Commit"
   ],
   "publisher": "ChristianGennari",
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message.git"
+  },
   "activationEvents": [
     "onCommand:aiCommitMessage.generateMessage",
     "onCommand:aiCommitMessage.selectProfile",
@@ -177,5 +180,9 @@
     "openai": "^6.36.0",
     "simple-git": "^3.36.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message/issues"
+  },
+  "homepage": "https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message#readme"
 }
