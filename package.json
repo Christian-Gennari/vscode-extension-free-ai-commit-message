@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate Conventional Commit messages from staged git changes. Bring-your-own-key: works with Groq, OpenRouter, DeepSeek, Ollama, OpenAI, Gemini and Claude. Free to use.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
@@ -45,7 +45,7 @@
     "commands": [
       {
         "command": "aiCommitMessage.generateMessage",
-        "icon": "$(git-commit)",
+        "icon": "$(sparkle)",
         "title": "Generate Commit Message"
       },
       {
@@ -66,13 +66,33 @@
       "properties": {
         "aiCommitMessage.activeProfile": {
           "type": "string",
-          "default": "openai",
-          "description": "Name of the active provider profile (see aiCommitMessage.profiles)."
+          "default": "gemini",
+          "enum": [
+            "gemini",
+            "groq",
+            "github",
+            "openrouter",
+            "ollama",
+            "deepseek",
+            "openai",
+            "claude"
+          ],
+          "enumDescriptions": [
+            "Google AI Studio (Gemini 2.0 Flash Lite — Free tier: 30 RPM, 1,500 req/day)",
+            "Groq Cloud (Llama 3.3 70B — Free tier: 30 RPM, 14,400 req/day)",
+            "GitHub Models (GPT-4o mini — Free tier with GitHub PAT: 15 RPM, 150 req/day)",
+            "OpenRouter (openrouter/free — Auto-routes across active free models)",
+            "Ollama (Qwen 2.5 Coder 3B — 100% offline, local, free)",
+            "DeepSeek (DeepSeek-V3 / deepseek-chat — BYOK)",
+            "OpenAI (GPT-4o mini direct API — BYOK)",
+            "Claude (Claude 3.5 Haiku — BYOK)"
+          ],
+          "description": "Active AI provider profile. Use 'Free AI Commit: Set API Key for Active Profile' in Command Palette to configure your key."
         },
         "aiCommitMessage.profiles": {
           "type": "object",
           "default": {},
-          "description": "Provider profiles. Each entry: { kind: 'openai-compatible'|'gemini'|'claude', baseUrl?, model, temperature? }. API keys are stored separately in VS Code secret storage."
+          "description": "Custom provider overrides or additional endpoints (optional). Built-in presets (gemini, groq, github, openrouter, ollama, deepseek, openai, claude) work out of the box."
         },
         "aiCommitMessage.language": {
           "type": "string",

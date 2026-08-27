@@ -50,7 +50,7 @@ export class ConfigurationManager {
   }
 
   getActiveProfileName(): string {
-    return this.getConfig<string>(ConfigKeys.ACTIVE_PROFILE, 'openai');
+    return this.getConfig<string>(ConfigKeys.ACTIVE_PROFILE, 'gemini');
   }
 
   getActiveProfile(): { name: string; profile: ProviderProfile } {
