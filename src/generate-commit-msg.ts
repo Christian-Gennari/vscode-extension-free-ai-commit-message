@@ -1,58 +1,51 @@
 import * as fs from 'fs-extra';
-import { ChatCompletionMessageParam } from 'openai/resources';
 import * as vscode from 'vscode';
 import { ConfigKeys, ConfigurationManager } from './config';
 import { getDiffStaged } from './git-utils';
-import { ChatGPTAPI, ResponsesAPI } from './openai-utils';
+import { truncateDiff } from './diff-utils';
 import { getMainCommitPrompt } from './prompts';
+import { generateCommitMessage, ChatMessage } from './providers';
+import { KeyStore } from './secrets';
 import { ProgressHandler } from './utils';
-import { GeminiAPI } from './gemini-utils';
-import { ClaudeAPI } from './claude-utils';
 import { Logger } from './logger';
 
 /**
  * Generates a chat completion prompt for the commit message based on the provided diff.
- *
- * @param {string} diff - The diff string representing changes to be committed.
- * @param {string} additionalContext - Additional context for the changes.
- * @returns {Promise<Array<{ role: string, content: string }>>} - A promise that resolves to an array of messages for the chat completion.
  */
 const generateCommitMessageChatCompletionPrompt = async (
   diff: string,
   additionalContext?: string
-) => {
+): Promise<ChatMessage[]> => {
   const INIT_MESSAGES_PROMPT = await getMainCommitPrompt();
-  const chatContextAsCompletionRequest = [...INIT_MESSAGES_PROMPT];
+  const chatContextAsCompletionRequest: ChatMessage[] = [...INIT_MESSAGES_PROMPT];
 
   if (additionalContext) {
     chatContextAsCompletionRequest.push({
       role: 'user',
-      content: `Additional context for the changes:\n${additionalContext}`
+      content: `Additional context for the changes:\n${additionalContext}`,
     });
   }
 
   chatContextAsCompletionRequest.push({
     role: 'user',
-    content: diff
+    content: diff,
   });
+
   return chatContextAsCompletionRequest;
 };
 
 /**
  * Retrieves the repository associated with the provided argument.
- *
- * @param {any} arg - The input argument containing the root URI of the repository.
- * @returns {Promise<vscode.SourceControlRepository>} - A promise that resolves to the repository object.
  */
-export async function getRepo(arg) {
-  const gitApi = vscode.extensions.getExtension('vscode.git')?.exports.getAPI(1);
+export async function getRepo(arg: any): Promise<any> {
+  const gitApi = vscode.extensions.getExtension('vscode.git')?.exports?.getAPI(1);
   if (!gitApi) {
     throw new Error('Git extension not found');
   }
 
-  if (typeof arg === 'object' && arg.rootUri) {
+  if (typeof arg === 'object' && arg?.rootUri) {
     const resourceUri = arg.rootUri;
-    const realResourcePath: string = fs.realpathSync(resourceUri!.fsPath);
+    const realResourcePath: string = fs.realpathSync(resourceUri.fsPath);
     for (let i = 0; i < gitApi.repositories.length; i++) {
       const repo = gitApi.repositories[i];
       if (realResourcePath.startsWith(repo.rootUri.fsPath)) {
@@ -60,138 +53,127 @@ export async function getRepo(arg) {
       }
     }
   }
-  return gitApi.repositories[0];
+
+  if (gitApi.repositories && gitApi.repositories.length > 0) {
+    return gitApi.repositories[0];
+  }
+
+  throw new Error('No Git repository found in workspace');
 }
 
 /**
  * Generates a commit message based on the changes staged in the repository.
- *
- * @param {any} arg - The input argument containing the root URI of the repository.
- * @returns {Promise<void>} - A promise that resolves when the commit message has been generated and set in the SCM input box.
  */
-export async function generateCommitMsg(arg) {
+export async function generateCommitMsg(arg: any): Promise<void> {
   return ProgressHandler.withProgress('', async (progress) => {
+    const configManager = ConfigurationManager.getInstance();
+    const repo = await getRepo(arg);
+
+    const { name: activeProfileName, profile } = configManager.getActiveProfile();
+    Logger.info(`Using active provider profile: "${activeProfileName}" (${profile.kind})`);
+
+    progress.report({ message: 'Getting staged changes...' });
+    const { diff, stat, fileList, error } = await getDiffStaged(repo);
+
+    if (error) {
+      throw new Error(`Failed to get staged changes: ${error}`);
+    }
+
+    if (!diff || diff.trim() === '') {
+      throw new Error('No changes staged for commit');
+    }
+
+    const scmInputBox = repo.inputBox;
+    if (!scmInputBox) {
+      throw new Error('Unable to find the SCM input box');
+    }
+
+    const maxDiffChars = configManager.getConfig<number>(ConfigKeys.MAX_DIFF_CHARACTERS, 60000);
+    const diffStrategy = configManager.getConfig<'truncate' | 'fail'>(
+      ConfigKeys.DIFF_OVERFLOW_STRATEGY,
+      'truncate'
+    );
+
+    const truncation = truncateDiff(diff, maxDiffChars, diffStrategy);
+    if (truncation.truncated) {
+      vscode.window.showWarningMessage(
+        `Staged diff exceeded limit (${maxDiffChars} chars) and was truncated (head and tail preserved).`
+      );
+    }
+
+    let finalDiffText = truncation.text;
+    if (truncation.truncated && fileList.length > 0) {
+      finalDiffText += `\n\n---\nSummary of all changed files:\n${fileList.join('\n')}`;
+      if (stat) {
+        finalDiffText += `\n${stat}`;
+      }
+    }
+
+    const additionalContext = scmInputBox.value.trim();
+
+    progress.report({
+      message: additionalContext
+        ? 'Analyzing changes with additional context...'
+        : 'Analyzing changes...',
+    });
+
+    const messages = await generateCommitMessageChatCompletionPrompt(
+      finalDiffText,
+      additionalContext
+    );
+
+    progress.report({
+      message: additionalContext
+        ? 'Generating commit message with additional context...'
+        : 'Generating commit message...',
+    });
+
     try {
-      const configManager = ConfigurationManager.getInstance();
-      const repo = await getRepo(arg);
-
-      const aiProvider = configManager.getConfig<string>(
-        ConfigKeys.AI_PROVIDER,
-        'openai'
-      );
-      Logger.info(`Using AI provider: ${aiProvider}`);
-
-      progress.report({ message: 'Getting staged changes...' });
-      const { diff, error } = await getDiffStaged(repo);
-
-      if (error) {
-        throw new Error(`Failed to get staged changes: ${error}`);
-      }
-
-      if (!diff || diff === 'No changes staged.') {
-        throw new Error('No changes staged for commit');
-      }
-
-      const scmInputBox = repo.inputBox;
-      if (!scmInputBox) {
-        throw new Error('Unable to find the SCM input box');
-      }
-
-      const additionalContext = scmInputBox.value.trim();
-
-      progress.report({
-        message: additionalContext
-          ? 'Analyzing changes with additional context...'
-          : 'Analyzing changes...'
-      });
-      const messages = await generateCommitMessageChatCompletionPrompt(
-        diff,
-        additionalContext
+      const keyStore = KeyStore.getInstance();
+      const apiKey = await keyStore.get(activeProfileName);
+      const temperature = configManager.getConfig<number>(
+        ConfigKeys.TEMPERATURE,
+        profile.temperature ?? 0.7
       );
 
-      progress.report({
-        message: additionalContext
-          ? 'Generating commit message with additional context...'
-          : 'Generating commit message...'
-      });
-      try {
-        let commitMessage: string | undefined;
+      let commitMessage = await generateCommitMessage(
+        profile,
+        activeProfileName,
+        apiKey,
+        messages,
+        temperature
+      );
 
-        if (aiProvider === 'gemini') {
-          const geminiApiKey = configManager.getConfig<string>(
-            ConfigKeys.GEMINI_API_KEY
-          );
-          if (!geminiApiKey) {
-            throw new Error('Gemini API Key not configured');
-          }
-          commitMessage = await GeminiAPI(messages);
-        } else if (aiProvider === 'claude') {
-          const claudeApiKey = configManager.getConfig<string>(
-            ConfigKeys.CLAUDE_API_KEY
-          );
-          if (!claudeApiKey) {
-            throw new Error('Claude API Key not configured');
-          }
-          commitMessage = await ClaudeAPI(messages);
-        } else {
-          const openaiApiKey = configManager.getConfig<string>(
-            ConfigKeys.OPENAI_API_KEY
-          );
-          if (!openaiApiKey) {
-            throw new Error('OpenAI API Key not configured');
-          }
-          const apiType = configManager.getConfig<string>(
-            ConfigKeys.OPENAI_API_TYPE,
-            'completion'
-          );
-          if (apiType === 'response') {
-            commitMessage = await ResponsesAPI(
-              messages as ChatCompletionMessageParam[]
-            );
-          } else {
-            commitMessage = await ChatGPTAPI(messages as ChatCompletionMessageParam[]);
-          }
-        }
-
-        if (commitMessage) {
-          // 清理 think 标签内容
-          commitMessage = commitMessage.replace(/<think>.*?<\/think>/gs, '').trim();
-          Logger.info('Commit message generated successfully');
-          scmInputBox.value = commitMessage;
-        } else {
-          throw new Error('Failed to generate commit message');
-        }
-      } catch (err: any) {
-        Logger.error(`${aiProvider} API call failed:`, err);
-        let errorMessage =
-          (err instanceof Error && err.message) ||
-          (typeof err === 'string' ? err : 'An unexpected error occurred');
-
-        if (aiProvider === 'openai' && err?.response?.status) {
-          switch (err.response.status) {
-            case 401:
-              errorMessage = 'Invalid OpenAI API key or unauthorized access';
-              break;
-            case 429:
-              errorMessage = 'Rate limit exceeded. Please try again later';
-              break;
-            case 500:
-              errorMessage = 'OpenAI server error. Please try again later';
-              break;
-            case 503:
-              errorMessage = 'OpenAI service is temporarily unavailable';
-              break;
-          }
-        } else if (aiProvider === 'gemini') {
-          errorMessage = `Gemini API error: ${err.message}`;
-        } else if (aiProvider === 'claude') {
-          errorMessage = `Claude API error: ${err.message}`;
-        }
-
-        throw new Error(errorMessage);
+      if (commitMessage) {
+        commitMessage = commitMessage.replace(/<think>.*?<\/think>/gs, '').trim();
+        Logger.info('Commit message generated successfully');
+        scmInputBox.value = commitMessage;
+      } else {
+        throw new Error('Failed to generate commit message');
       }
-    } catch (error) {
-      throw error;
+    } catch (err: any) {
+      Logger.error(`Provider "${activeProfileName}" generation failed:`, err);
+      let errorMessage =
+        (err instanceof Error && err.message) ||
+        (typeof err === 'string' ? err : 'An unexpected error occurred');
+
+      if (err?.status) {
+        switch (err.status) {
+          case 401:
+            errorMessage = `Invalid API key or unauthorized access for profile "${activeProfileName}".`;
+            break;
+          case 429:
+            errorMessage = `Rate limit exceeded for profile "${activeProfileName}". Please try again later.`;
+            break;
+          case 500:
+          case 502:
+          case 503:
+            errorMessage = `Provider server error (${err.status}). Please try again later.`;
+            break;
+        }
+      }
+
+      throw new Error(errorMessage);
     }
   });
 }
