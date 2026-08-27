@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { CommandManager } from './commands';
 import { ConfigurationManager } from './config';
 import { KeyStore, migrateLegacyKeys } from './secrets';
+import { isLocalhost } from './profiles';
 import { Logger } from './logger';
 
 /**
@@ -17,14 +18,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const keyStore = KeyStore.getInstance(context.secrets);
     const configManager = ConfigurationManager.getInstance(context);
 
-    // One-time migration of legacy plain-text settings keys to SecretStorage
-    try {
-      const legacyConfig = vscode.workspace.getConfiguration('ai-commit');
-      await migrateLegacyKeys(keyStore, context.globalState, legacyConfig);
-    } catch (migErr) {
-      Logger.error('Legacy key migration error:', migErr);
-    }
-
+    // Register commands and disposables first so commands are always available
     const commandManager = new CommandManager(context);
     commandManager.registerCommands();
 
@@ -36,31 +30,52 @@ export async function activate(context: vscode.ExtensionContext) {
       },
     });
 
-    // Check if the active profile requires an API key (no network calls)
-    const { name: activeProfileName, profile } = configManager.getActiveProfile();
-    const isLocalhost =
-      profile.kind === 'openai-compatible' &&
-      Boolean(profile.baseUrl && profile.baseUrl.includes('localhost'));
-
-    if (!isLocalhost) {
-      const storedKey = await keyStore.get(activeProfileName);
-      if (!storedKey) {
-        // Optional non-blocking notification prompting configuration
-        vscode.window
-          .showWarningMessage(
-            `No API key stored for active profile "${activeProfileName}". Configure one now?`,
-            'Yes',
-            'Later'
-          )
-          .then(async (selection) => {
-            if (selection === 'Yes') {
-              await vscode.commands.executeCommand('aiCommitMessage.setApiKey');
-            }
-          });
-      }
+    // One-time migration of legacy plain-text settings keys to SecretStorage
+    try {
+      const legacyConfig = vscode.workspace.getConfiguration('ai-commit');
+      await migrateLegacyKeys(keyStore, context.globalState, legacyConfig);
+    } catch (migErr: any) {
+      Logger.error('Legacy key migration error:', migErr?.message || migErr);
     }
-  } catch (error) {
-    Logger.error('Failed to activate extension:', error);
+
+    // Check if the active profile requires an API key (safe, resilient, no network calls)
+    try {
+      const { name: activeProfileName, profile } = configManager.getActiveProfile();
+      const isLocal =
+        profile.kind === 'openai-compatible' &&
+        Boolean(profile.baseUrl && isLocalhost(profile.baseUrl));
+
+      if (!isLocal) {
+        const storedKey = await keyStore.get(activeProfileName);
+        if (!storedKey) {
+          vscode.window
+            .showWarningMessage(
+              `No API key stored for active profile "${activeProfileName}". Configure one now?`,
+              'Yes',
+              'Later'
+            )
+            .then(async (selection) => {
+              if (selection === 'Yes') {
+                await vscode.commands.executeCommand('aiCommitMessage.setApiKey');
+              }
+            });
+        }
+      }
+    } catch (configErr: any) {
+      Logger.warn('Active profile configuration check failed during activation:', configErr?.message || configErr);
+      vscode.window
+        .showWarningMessage(
+          `Free AI Commit: Configured active profile is invalid (${configErr?.message || configErr}). Please select a valid profile.`,
+          'Select Profile'
+        )
+        .then(async (selection) => {
+          if (selection === 'Select Profile') {
+            await vscode.commands.executeCommand('aiCommitMessage.selectProfile');
+          }
+        });
+    }
+  } catch (error: any) {
+    Logger.error('Failed to activate extension:', error?.message || error);
     throw error;
   }
 }

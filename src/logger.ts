@@ -37,10 +37,20 @@ export class Logger {
 
   private static formatArg(a: any): string {
     if (a instanceof Error) {
-      return `${a.message}\n${a.stack || ''}`;
+      return `${a.name}: ${a.message}`;
     }
-    if (typeof a === 'object') {
-      return JSON.stringify(a, null, 2);
+    if (typeof a === 'object' && a !== null) {
+      try {
+        const sanitized: Record<string, any> = { ...a };
+        for (const k of Object.keys(sanitized)) {
+          if (/key|auth|token|secret|password|bearer|header/i.test(k)) {
+            sanitized[k] = '[REDACTED]';
+          }
+        }
+        return JSON.stringify(sanitized);
+      } catch {
+        return '[Object]';
+      }
     }
     return String(a);
   }

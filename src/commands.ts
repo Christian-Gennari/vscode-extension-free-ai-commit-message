@@ -114,12 +114,12 @@ export class CommandManager {
   }
 
   private registerCommand(command: string, handler: (...args: any[]) => any) {
-    const disposable = vscode.commands.registerCommand(command, async (...args) => {
+    const executeWithRetry = async (...args: any[]) => {
       try {
         Logger.info(`Executing command: ${command}`);
         await handler(...args);
       } catch (error: any) {
-        Logger.error(`Command '${command}' failed:`, error);
+        Logger.error(`Command '${command}' failed:`, error?.message || error);
         const result = await vscode.window.showErrorMessage(
           `Free AI Commit Failed: ${error?.message || error}`,
           'Retry',
@@ -127,7 +127,12 @@ export class CommandManager {
         );
 
         if (result === 'Retry') {
-          await handler(...args);
+          // Wrapped retry ensures no unhandled rejection
+          try {
+            await executeWithRetry(...args);
+          } catch (retryErr: any) {
+            Logger.error(`Retry for command '${command}' failed:`, retryErr?.message || retryErr);
+          }
         } else if (result === 'Configure') {
           await vscode.commands.executeCommand(
             'workbench.action.openSettings',
@@ -135,8 +140,9 @@ export class CommandManager {
           );
         }
       }
-    });
+    };
 
+    const disposable = vscode.commands.registerCommand(command, executeWithRetry);
     this.disposables.push(disposable);
     this.context.subscriptions.push(disposable);
   }
