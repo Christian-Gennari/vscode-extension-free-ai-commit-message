@@ -6,11 +6,13 @@
 
 Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400 req/day free)**, **GitHub Models**, **OpenRouter**, and **100% offline local Ollama**, as well as DeepSeek, OpenAI, and Anthropic Claude.
 
-[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-v0.1.10-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
+[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-v0.1.13-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.txt)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message)
 
 </div>
+
+> **Using a JetBrains IDE?** (Rider, IntelliJ IDEA, PyCharm, WebStorm, etc.) Check out the sibling plugin: [Free AI Commit Message for JetBrains IDEs](https://github.com/Christian-Gennari/jetbrains-plugin-free-ai-commit-message).
 
 ---
 
@@ -23,9 +25,9 @@ Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400
 2. **Set your API Key:**
    - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
    - Select **`Free AI Commit: Set API Key for Active Profile`**
-   - Paste your key *(saved securely in VS Code's encrypted OS keychain)*.
+   - Paste your key *(saved securely in VS Code's OS-encrypted keychain)*.
 3. **Generate your Commit Message:**
-   - Click the **Sparkle icon** in the Source Control (SCM) title bar, or run **`Free AI Commit: Generate AI Commit Message`**.
+   - Click the **Sparkle icon** (`✨`) in the Source Control (SCM) title bar, or run **`Free AI Commit: Generate AI Commit Message`** (`Ctrl+Shift+P`).
 
 ---
 
@@ -33,7 +35,7 @@ Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400
 
 Providers ranked by speed, reliability, and free daily quota:
 
-| Rank | Provider | Default Model | Speed & Reliability | Free Daily Quota | Key Source |
+| Rank | Provider | Default Model | Speed & Characteristics | Free Daily Quota | Key Source |
 | :---: | :--- | :--- | :--- | :--- | :--- |
 | **#1** | **Google Gemini** *(Default)* | `gemini-3.5-flash-lite` | Highest reliability & quality | **1,500 req/day** (30 RPM) | [Google AI Studio](https://aistudio.google.com/app/apikey) |
 | **#2** | **Groq Cloud** | `openai/gpt-oss-120b` | Fastest (~300ms LPU latency) | **14,400 req/day** (30 RPM) | [Groq Console](https://console.groq.com/keys) |
@@ -54,7 +56,7 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
 
 - **`Free AI Commit: Generate AI Commit Message`**: Generates and populates commit message from staged changes.
 - **`Free AI Commit: Switch Active AI Profile`**: Quickly switch between configured providers.
-- **`Free AI Commit: Set API Key for Active Profile`**: Securely save or update your API key.
+- **`Free AI Commit: Set API Key for Active Profile`**: Securely save or update your API key in the OS keychain.
 - **`Free AI Commit: Delete API Key for Active Profile`**: Remove stored credential for active profile from keychain.
 - **`Free AI Commit: Select Model for Active Profile`**: Browse and select available models for OpenAI-compatible providers.
 
@@ -96,9 +98,10 @@ Add custom profiles to your `settings.json`:
 
 ## Security & Privacy
 
-- **Encrypted Secret Storage:** API keys are stored exclusively in VS Code's OS-encrypted credential store (`SecretStorage`). They are never written to `settings.json` or committed to source control.
-- **Direct Client-to-API:** Diff data travels directly from your machine to the chosen provider API. No intermediate telemetry or middleman proxy servers are used.
-- **Privacy Notice:** When using cloud providers, staged diffs (which may include source code and comments) are sent to the provider endpoint according to their respective privacy terms. If complete privacy is required, use **Ollama** on `localhost`, where zero data leaves your local machine.
+- **Encrypted Secret Storage:** API keys are stored exclusively in your operating system's native credential store (`SecretStorage`). They are never written to `settings.json` or committed to source control.
+- **Direct Client-to-API:** Diff data travels directly from your workstation to the chosen provider API over TLS. No intermediate telemetry, tracking, or middleman proxy servers are used.
+- **Local Isolation with Ollama:** When complete privacy is required, select the **Ollama** profile (`http://localhost:11434/v1`). Zero code or metadata leaves your local workstation.
+- **Prompt Isolation:** Staged diffs, file lists, and user notes are strictly delimited and marked as untrusted input to defend against prompt injection.
 
 ---
 
