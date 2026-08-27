@@ -51,7 +51,7 @@ export class ConfigurationManager {
   }
 
   getActiveProfileName(): string {
-    return this.getConfig<string>(ConfigKeys.ACTIVE_PROFILE, 'gemini');
+    return this.getConfig<string>(ConfigKeys.ACTIVE_PROFILE, 'free');
   }
 
   getActiveProfile(): { name: string; profile: ProviderProfile } {
