@@ -1,8 +1,8 @@
 {
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
-  "description": "Generate Conventional Commit messages from staged git changes. Bring-your-own-key: works with Groq, OpenRouter, DeepSeek, Ollama, OpenAI, Gemini and Claude. Free to use.",
-  "version": "0.1.10",
+  "description": "Generate clean, conventional Git commit messages using free AI models (Gemini 2.5 Flash, Groq, Ollama, OpenRouter) or bring your own key (DeepSeek, OpenAI, Claude).",
+  "version": "0.1.11",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
