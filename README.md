@@ -2,9 +2,9 @@
 
 # Free AI Commit Message
 
-**Generate clean, conventional Git commit messages using BYOK AI providers (Gemini, Groq, OpenRouter, DeepSeek, OpenAI, Claude) or offline local Ollama.**
+**Generate clean, conventional Git commit messages out of the box with zero setup, or connect your own free BYOK providers (Gemini, Groq, OpenRouter) and offline local Ollama.**
 
-Connects directly using your own API keys—leveraging generous free daily quotas from **Gemini (1,500 req/day)**, **Groq (14,400 req/day)**, **GitHub Models**, and **OpenRouter**, or running **100% offline with local Ollama** (no key required). Also supports DeepSeek, OpenAI, and Anthropic Claude.
+Works instantly upon installation with zero API key configuration, or connect directly using your own API keys to leverage generous free daily quotas from **Gemini (1,500 req/day)**, **Groq (14,400 req/day)**, **GitHub Models**, and **OpenRouter**, or run **100% offline with local Ollama** (no key required). Also supports DeepSeek, OpenAI, and Anthropic Claude.
 
 [![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-Install-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.txt)
@@ -16,37 +16,37 @@ Connects directly using your own API keys—leveraging generous free daily quota
 
 ---
 
-## Quick Start
+## Quick Start (Zero Setup Required)
 
 1. **Stage your Git changes:**
    ```bash
    git add <files...>
    ```
-2. **Set your API Key:**
-   - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
-   - Select **`Free AI Commit: Set API Key for Active Profile`**
-   - Paste your key *(saved securely in VS Code's OS-encrypted keychain)*.
-3. **Generate your Commit Message:**
-   - Click the **Sparkle icon** (`✨`) in the Source Control (SCM) title bar, or run **`Free AI Commit: Generate AI Commit Message`** (`Ctrl+Shift+P`).
+2. **Generate your Commit Message:**
+   - Click the **Sparkle icon** (`✨`) in the Source Control (SCM) title bar, or press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) and run **`Free AI Commit: Generate AI Commit Message`**.
+   - Your conventional commit message will be generated and placed directly in your commit message box.
+
+*(Optional)* **Want higher rate limits or custom models?**
+- Press `Ctrl+Shift+P` -> **`Free AI Commit: Switch Active AI Profile`** to select Gemini, Groq, Ollama, etc.
+- Run **`Free AI Commit: Set API Key for Active Profile`** to enter your personal free tier key (stored securely in VS Code's OS-encrypted keychain).
 
 ---
 
-## Provider Recommendations
+## Provider Profiles & Recommendations
 
-Providers ranked by speed, reliability, and free daily quota:
+| Rank | Provider Profile | Default Model | Setup Required | Speed & Limits | Key Source |
+| :---: | :--- | :--- | :---: | :--- | :--- |
+| **#1** | **Free Cloud** *(Default)* | `auto` | **None (Zero Setup)** | Instant quick-start, daily free pool | Built-in |
+| **#2** | **Google Gemini** | `gemini-3.5-flash-lite` | Free API Key | **1,500 req/day** (30 RPM) | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| **#3** | **Groq Cloud** | `openai/gpt-oss-120b` | Free API Key | **14,400 req/day** (30 RPM, ~300ms latency) | [Groq Console](https://console.groq.com/keys) |
+| **#4** | **Ollama** | `qwen2.5-coder:3b` | Local Server | **Unlimited** (100% offline, zero data leaves machine) | [Ollama](https://ollama.com) |
+| **#5** | **OpenRouter Free** | `cohere/north-mini-code:free` | Free API Key | Free community tier | [OpenRouter Keys](https://openrouter.ai/keys) |
+| **#6** | **GitHub Models** | `gpt-4o-mini` | GitHub PAT | **150 req/day** (15 RPM) | [GitHub PAT Tokens](https://github.com/settings/tokens) |
+| — | **DeepSeek** | `deepseek-chat` | BYOK | High reasoning, low cost | [DeepSeek Platform](https://platform.deepseek.com) |
+| — | **OpenAI** | `gpt-4o-mini` | BYOK | Direct OpenAI API | [OpenAI Platform](https://platform.openai.com) |
+| — | **Anthropic Claude** | `claude-3-5-haiku` | BYOK | Direct Anthropic API | [Anthropic Console](https://console.anthropic.com) |
 
-| Rank | Provider | Default Model | Speed & Characteristics | Free Daily Quota | Key Source |
-| :---: | :--- | :--- | :--- | :--- | :--- |
-| **#1** | **Google Gemini** *(Default)* | `gemini-3.5-flash-lite` | Highest reliability & quality | **1,500 req/day** (30 RPM) | [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| **#2** | **Groq Cloud** | `openai/gpt-oss-120b` | Fastest (~300ms LPU latency) | **14,400 req/day** (30 RPM) | [Groq Console](https://console.groq.com/keys) |
-| **#3** | **Ollama** | `qwen2.5-coder:3b` | 100% offline, zero data leaves machine | **Unlimited** (Local) | [Ollama](https://ollama.com) |
-| **#4** | **OpenRouter Free** | `cohere/north-mini-code:free` | Dedicated free code model | Free community tier | [OpenRouter Keys](https://openrouter.ai/keys) |
-| **#5** | **GitHub Models** | `gpt-4o-mini` | Stable OpenAI endpoint via GitHub PAT | **150 req/day** (15 RPM) | [GitHub PAT Tokens](https://github.com/settings/tokens) |
-| — | **DeepSeek** | `deepseek-chat` | High reasoning, low cost | BYOK / Pay-as-you-go | [DeepSeek Platform](https://platform.deepseek.com) |
-| — | **OpenAI** | `gpt-4o-mini` | Direct OpenAI API | BYOK / Pay-as-you-go | [OpenAI Platform](https://platform.openai.com) |
-| — | **Anthropic Claude** | `claude-3-5-haiku` | Direct Anthropic API | BYOK / Pay-as-you-go | [Anthropic Console](https://console.anthropic.com) |
-
-> **Recommendation:** Start with **Google Gemini** for the best balance of speed and reliability, or switch to **Groq Cloud** for near-instant LPU completions. For offline development, install [Ollama](https://ollama.com) and run `ollama run qwen2.5-coder:3b` with no API key required.
+> **Recommendation:** Keep **Free (No Setup Required)** for effortless commits right after installing. For heavy day-to-day use with massive diffs, switch to your own free **Google Gemini** or **Groq Cloud** key for up to 14,400 requests/day.
 
 ---
 
@@ -68,7 +68,7 @@ Open VS Code Settings (`Ctrl+,` / `Cmd+,`) and search for **`Free AI Commit`**:
 
 | Setting | Default | Description |
 | :--- | :--- | :--- |
-| `aiCommitMessage.activeProfile` | `"gemini"` | Active provider preset (`gemini`, `groq`, `github`, `openrouter`, `ollama`, `deepseek`, `openai`, `claude`). |
+| `aiCommitMessage.activeProfile` | `"free"` | Active provider preset (`free`, `gemini`, `groq`, `github`, `openrouter`, `ollama`, `deepseek`, `openai`, `claude`). |
 | `aiCommitMessage.language` | `"English"` | Output language (supports 19 languages). |
 | `aiCommitMessage.enableGitmoji` | `false` | Prefix conventional commit types with Gitmoji symbols (e.g. `feat:`, `fix:`). |
 | `aiCommitMessage.customSystemPrompt` | `""` | Optional system prompt override. |
@@ -98,13 +98,13 @@ Add custom profiles to your `settings.json`:
 
 ## Security & Privacy
 
-- **Encrypted Secret Storage:** API keys are stored exclusively in your operating system's native credential store (`SecretStorage`). They are never written to `settings.json` or committed to source control.
-- **Direct Client-to-API:** Diff data travels directly from your workstation to the chosen provider API over TLS. No intermediate telemetry, tracking, or middleman proxy servers are used.
-- **Local Isolation with Ollama:** When complete privacy is required, select the **Ollama** profile (`http://localhost:11434/v1`). Zero code or metadata leaves your local workstation.
+- **Zero-Setup Quick Start:** The default `free` profile connects securely over HTTPS to the proxy with server-side prompt isolation, input diff truncation, and zero tracking.
+- **Encrypted Secret Storage:** Personal API keys are stored exclusively in VS Code's OS-encrypted SecretStorage keychain. They are never written to settings JSON files or extension logs.
+- **Local Isolation with Ollama:** When absolute offline privacy is required, select the **Ollama** profile (`http://localhost:11434/v1`). Zero code or metadata leaves your local workstation.
 - **Prompt Isolation:** Staged diffs, file lists, and user notes are strictly delimited and marked as untrusted input to defend against prompt injection.
 
 ---
 
 ## License
 
-MIT License — see [license.txt](license.txt) for details. Forked from `sitoi/ai-commit`.
+MIT © [Christian Gennari](https://github.com/Christian-Gennari)
