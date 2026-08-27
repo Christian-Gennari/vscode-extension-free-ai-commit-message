@@ -6,14 +6,11 @@
     "sourceMap": true,
     "rootDir": "src",
     "outDir": "dist",
-    // "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": false /* enable all strict type-checking options */,
-    /* Additional Checks */
-    // "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
-    // "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
-    // "noUnusedParameters": true,  /* Report errors on unused parameters. */
+    "strict": false,
     "esModuleInterop": true,
     "resolveJsonModule": true
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "test", "dist", "vitest.config.ts"]
 }
