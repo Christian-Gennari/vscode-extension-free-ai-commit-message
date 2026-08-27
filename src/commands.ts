@@ -51,10 +51,17 @@ export class CommandManager {
       const configManager = ConfigurationManager.getInstance();
       const activeProfileName = configManager.getActiveProfileName();
 
+      const placeholder =
+        activeProfileName === 'github'
+          ? 'GitHub Personal Access Token (ghp_...)'
+          : activeProfileName === 'ollama'
+          ? 'Not required for localhost (leave blank)'
+          : 'API key...';
+
       const apiKey = await vscode.window.showInputBox({
         password: true,
         prompt: `Enter API key for profile "${activeProfileName}"`,
-        placeHolder: 'API key...',
+        placeHolder: placeholder,
         ignoreFocusOut: true,
       });
 
