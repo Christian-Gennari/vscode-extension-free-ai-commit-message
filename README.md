@@ -14,7 +14,7 @@ Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400
 
 ---
 
-## ⚡ Quick Start (Get Started in 30 Seconds)
+## Quick Start
 
 1. **Stage your Git changes:**
    ```bash
@@ -22,59 +22,59 @@ Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400
    ```
 2. **Set your API Key:**
    - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
-   - Type and select: **`Free AI Commit: Set API Key for Active Profile`**
-   - Paste your free API key. *(Keys are stored securely in VS Code's encrypted OS keychain, not in plain text).*
+   - Select **`Free AI Commit: Set API Key for Active Profile`**
+   - Paste your key *(saved securely in VS Code's encrypted OS keychain)*.
 3. **Generate your Commit Message:**
-   - Click the **✨ Sparkle icon** in the Source Control (SCM) panel, or run **`Free AI Commit: Generate AI Commit Message`**.
+   - Click the **Sparkle icon** in the Source Control (SCM) title bar, or run **`Free AI Commit: Generate AI Commit Message`**.
 
 ---
 
-## 🎁 Free Tier Providers (Get Free API Keys)
+## Provider Recommendations
 
-The extension defaults to **Google Gemini (`gemini-3.5-flash-lite`)** with zero payment required. You can easily switch between any of these pre-configured providers:
+Providers ranked by speed, reliability, and free daily quota:
 
-| Provider | Model | Free Daily Quota | Where to get Free Key |
-| :--- | :--- | :--- | :--- |
-| **Google Gemini** *(Default)* | `gemini-3.5-flash-lite` | **1,500 requests/day** (30 RPM) | [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| **Groq Cloud** | `openai/gpt-oss-120b` | **14,400 requests/day** (30 RPM, ultra-fast) | [Groq Console](https://console.groq.com/keys) |
-| **GitHub Models** | `gpt-4o-mini` | **150 requests/day** (15 RPM) | [GitHub Personal Access Tokens](https://github.com/settings/tokens) |
-| **OpenRouter Free** | `cohere/north-mini-code:free` | Free dedicated code model | [OpenRouter Keys](https://openrouter.ai/keys) |
-| **Ollama (Local)** | `qwen2.5-coder:3b` | **Unlimited (100% offline & private)** | *No key required!* [Install Ollama](https://ollama.com) |
-| **DeepSeek** | `deepseek-chat` | Pay-as-you-go / BYOK | [DeepSeek Platform](https://platform.deepseek.com) |
-| **OpenAI** | `gpt-4o-mini` | Pay-as-you-go / BYOK | [OpenAI Platform](https://platform.openai.com) |
-| **Anthropic Claude** | `claude-3-5-haiku` | Pay-as-you-go / BYOK | [Anthropic Console](https://console.anthropic.com) |
+| Rank | Provider | Default Model | Speed & Reliability | Free Daily Quota | Key Source |
+| :---: | :--- | :--- | :--- | :--- | :--- |
+| **#1** | **Google Gemini** *(Default)* | `gemini-3.5-flash-lite` | Highest reliability & quality | **1,500 req/day** (30 RPM) | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| **#2** | **Groq Cloud** | `openai/gpt-oss-120b` | Fastest (~300ms LPU latency) | **14,400 req/day** (30 RPM) | [Groq Console](https://console.groq.com/keys) |
+| **#3** | **Ollama** | `qwen2.5-coder:3b` | 100% offline, zero data leaves machine | **Unlimited** (Local) | [Ollama](https://ollama.com) |
+| **#4** | **OpenRouter Free** | `cohere/north-mini-code:free` | Dedicated free code model | Free community tier | [OpenRouter Keys](https://openrouter.ai/keys) |
+| **#5** | **GitHub Models** | `gpt-4o-mini` | Stable OpenAI endpoint via GitHub PAT | **150 req/day** (15 RPM) | [GitHub PAT Tokens](https://github.com/settings/tokens) |
+| — | **DeepSeek** | `deepseek-chat` | High reasoning, low cost | BYOK / Pay-as-you-go | [DeepSeek Platform](https://platform.deepseek.com) |
+| — | **OpenAI** | `gpt-4o-mini` | Direct OpenAI API | BYOK / Pay-as-you-go | [OpenAI Platform](https://platform.openai.com) |
+| — | **Anthropic Claude** | `claude-3-5-haiku` | Direct Anthropic API | BYOK / Pay-as-you-go | [Anthropic Console](https://console.anthropic.com) |
 
-> 💡 **Tip:** If you run [Ollama](https://ollama.com) locally (`ollama run qwen2.5-coder:3b`), switch the profile to `ollama` and no API key or internet connection is required.
-
----
-
-## 🎛️ Command Palette Cheatsheet
-
-Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`):
-
-- **`Free AI Commit: Generate Commit Message`**: Generates and inserts the commit message from staged changes.
-- **`Free AI Commit: Select Provider Profile`**: Switch active provider (Gemini, Groq, GitHub, OpenRouter, Ollama, DeepSeek, OpenAI, Claude).
-- **`Free AI Commit: Set API Key for Active Profile`**: Securely save or update your API key for the active provider.
-- **`Free AI Commit: Show Available Models`**: Fetch and list available models directly from OpenAI-compatible endpoints.
+> **Recommendation:** Start with **Google Gemini** for the best balance of speed and reliability, or switch to **Groq Cloud** for near-instant LPU completions. For offline development, install [Ollama](https://ollama.com) and run `ollama run qwen2.5-coder:3b` with no API key required.
 
 ---
 
-## ⚙️ Configuration & Settings
+## Commands
 
-Open VS Code Settings (`Ctrl+,` or `Cmd+,`) and search for **`Free AI Commit`**:
+Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+
+- **`Free AI Commit: Generate AI Commit Message`**: Generates and populates commit message from staged changes.
+- **`Free AI Commit: Switch Active AI Profile`**: Quickly switch between configured providers.
+- **`Free AI Commit: Set API Key for Active Profile`**: Securely save or update your API key.
+- **`Free AI Commit: Delete API Key for Active Profile`**: Remove stored credential for active profile from keychain.
+
+---
+
+## Configuration
+
+Open VS Code Settings (`Ctrl+,` / `Cmd+,`) and search for **`Free AI Commit`**:
 
 | Setting | Default | Description |
 | :--- | :--- | :--- |
-| `aiCommitMessage.activeProfile` | `"gemini"` | Active provider (`gemini`, `groq`, `github`, `openrouter`, `ollama`, `deepseek`, `openai`, `claude`). |
-| `aiCommitMessage.language` | `"English"` | Output language (supports 19 languages including English, Spanish, German, French, Chinese, Japanese, Swedish, etc.). |
-| `aiCommitMessage.enableGitmoji` | `false` | When enabled, prefixes conventional commit types with Gitmoji emojis (e.g., `✨ feat:`, `🐛 fix:`). |
-| `aiCommitMessage.customSystemPrompt` | `""` | Optional prompt template override. |
-| `aiCommitMessage.maxDiffCharacters` | `60000` | Safety limit on diff characters sent to LLM. |
-| `aiCommitMessage.diffOverflowStrategy` | `"truncate"` | `truncate` safely keeps diff head+tail; `fail` aborts with warning. |
-| `aiCommitMessage.temperature` | `0.7` | LLM sampling temperature (0.0 to 2.0). |
-| `aiCommitMessage.profiles` | `{}` | Optional custom endpoints or model overrides. |
+| `aiCommitMessage.activeProfile` | `"gemini"` | Active provider preset (`gemini`, `groq`, `github`, `openrouter`, `ollama`, `deepseek`, `openai`, `claude`). |
+| `aiCommitMessage.language` | `"English"` | Output language (supports 19 languages). |
+| `aiCommitMessage.enableGitmoji` | `false` | Prefix conventional commit types with Gitmoji symbols (e.g. `feat:`, `fix:`). |
+| `aiCommitMessage.customSystemPrompt` | `""` | Optional system prompt override. |
+| `aiCommitMessage.maxDiffCharacters` | `60000` | Safety limit on diff size sent to LLM. |
+| `aiCommitMessage.diffOverflowStrategy` | `"truncate"` | `truncate` keeps diff head+tail; `fail` aborts with error. |
+| `aiCommitMessage.temperature` | `0.7` | Sampling temperature (0.0 to 2.0). |
+| `aiCommitMessage.profiles` | `{}` | Custom endpoints and model overrides. |
 
-### Adding Custom Endpoints (e.g. Local vLLM, LM Studio, or Private Proxies)
+### Custom Endpoints (vLLM, LM Studio, Private Proxies)
 
 Add custom profiles to your `settings.json`:
 
@@ -92,13 +92,13 @@ Add custom profiles to your `settings.json`:
 
 ---
 
-## 🔒 Security & Privacy
+## Security & Privacy
 
-- **Encrypted Secret Storage:** Your API keys are never saved in plain text in `settings.json` or committed to Git. They are stored inside VS Code's OS-encrypted keychain (`SecretStorage`).
-- **Direct Requests:** Diff data is sent directly to the AI provider endpoint you selected. No intermediary third-party proxy servers are involved.
+- **Encrypted Secret Storage:** API keys are stored exclusively in VS Code's OS-encrypted credential store (`SecretStorage`). They are never written to `settings.json` or committed to source control.
+- **Direct Client-to-API:** Diff data travels directly from your machine to the chosen provider API. No telemetry or middleman proxy servers are used.
 
 ---
 
-## 📄 License
+## License
 
-MIT License — see [LICENSE](license.txt) for details. Forked with gratitude from `sitoi/ai-commit`.
+MIT License — see [LICENSE](license.txt) for details. Forked from `sitoi/ai-commit`.
