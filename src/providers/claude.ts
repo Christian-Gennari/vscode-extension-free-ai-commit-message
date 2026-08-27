@@ -6,7 +6,8 @@ export async function generateClaude(
   apiKey: string | undefined,
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
   temperature?: number,
-  profileName: string = 'claude'
+  profileName: string = 'claude',
+  abortSignal?: AbortSignal
 ): Promise<string> {
   if (!apiKey) {
     throw new Error(`No API key stored for profile "${profileName}". Run "Free AI Commit: Set API Key".`);
@@ -22,13 +23,18 @@ export async function generateClaude(
       content: m.content,
     }));
 
-  const response = await anthropic.messages.create({
-    model: profile.model,
-    max_tokens: 1024,
-    temperature: temperature ?? profile.temperature ?? 0.7,
-    system: systemMessage,
-    messages: userMessages,
-  });
+  const response = await anthropic.messages.create(
+    {
+      model: profile.model,
+      max_tokens: 1024,
+      temperature: temperature ?? profile.temperature ?? 0.7,
+      system: systemMessage,
+      messages: userMessages,
+    },
+    {
+      signal: abortSignal,
+    }
+  );
 
   const contentBlock = response.content[0];
   if (contentBlock && contentBlock.type === 'text') {

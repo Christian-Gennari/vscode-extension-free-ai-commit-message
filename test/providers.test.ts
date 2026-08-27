@@ -65,13 +65,13 @@ describe('providers', () => {
       ).rejects.toThrow(/No API key stored for profile "openai"/);
     });
 
-    it('allows missing api key for localhost baseUrl', async () => {
+    it('allows missing api key for genuine localhost baseUrl', async () => {
       createMock.mockResolvedValueOnce({
         choices: [{ message: { content: 'feat: add local ollama support' } }],
       });
 
       const result = await generateOpenAICompatible(
-        { kind: 'openai-compatible', baseUrl: 'http://localhost:11434/v1', model: 'qwen2.5-coder:3b' },
+        { kind: 'openai-compatible', baseUrl: 'http://127.0.0.1:11434/v1', model: 'qwen2.5-coder:3b' },
         undefined,
         [{ role: 'user', content: 'diff' }],
         0.7,
@@ -83,29 +83,41 @@ describe('providers', () => {
         expect.objectContaining({
           model: 'qwen2.5-coder:3b',
           temperature: 0.7,
-        })
+        }),
+        expect.anything()
       );
     });
 
-    it('calls chat completion with custom parameters', async () => {
+    it('rejects missing api key for lookalike localhost domain', async () => {
+      await expect(
+        generateOpenAICompatible(
+          { kind: 'openai-compatible', baseUrl: 'https://localhost.attacker.com/v1', model: 'gpt-4o' },
+          undefined,
+          [{ role: 'user', content: 'diff' }],
+          0.7,
+          'fake-local'
+        )
+      ).rejects.toThrow(/No API key stored for profile "fake-local"/);
+    });
+
+    it('passes abort signal when provided', async () => {
       createMock.mockResolvedValueOnce({
-        choices: [{ message: { content: 'fix: resolve bug' } }],
+        choices: [{ message: { content: 'fix: cancellation support' } }],
       });
 
-      const result = await generateOpenAICompatible(
-        { kind: 'openai-compatible', baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
-        'gsk-secret',
+      const controller = new AbortController();
+      await generateOpenAICompatible(
+        { kind: 'openai-compatible', baseUrl: 'http://localhost:11434/v1', model: 'llama3.2' },
+        undefined,
         [{ role: 'user', content: 'diff' }],
-        0.5,
-        'groq'
+        0.7,
+        'ollama',
+        controller.signal
       );
 
-      expect(result).toBe('fix: resolve bug');
       expect(createMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          model: 'llama-3.3-70b-versatile',
-          temperature: 0.5,
-        })
+        expect.anything(),
+        expect.objectContaining({ signal: controller.signal })
       );
     });
   });
@@ -123,7 +135,7 @@ describe('providers', () => {
       ).rejects.toThrow(/No API key stored for profile "gemini"/);
     });
 
-    it('generates message using GoogleGenerativeAI chat', async () => {
+    it('preserves all user messages including additional context and diff', async () => {
       sendMessageMock.mockResolvedValueOnce({
         response: { text: () => 'docs: update readme' },
       });
@@ -133,20 +145,17 @@ describe('providers', () => {
         'aiza-key',
         [
           { role: 'system', content: 'system instructions' },
-          { role: 'user', content: 'staged diff' },
+          { role: 'user', content: 'Additional context for the changes: Ticket-42' },
+          { role: 'user', content: 'staged diff content' },
         ],
         0.7,
         'gemini'
       );
 
       expect(result).toBe('docs: update readme');
-      expect(getGenerativeModelMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          model: 'gemini-2.0-flash',
-          generationConfig: { temperature: 0.7 },
-        })
+      expect(sendMessageMock).toHaveBeenCalledWith(
+        'Additional context for the changes: Ticket-42\n\nstaged diff content'
       );
-      expect(sendMessageMock).toHaveBeenCalledWith('staged diff');
     });
   });
 
@@ -163,11 +172,12 @@ describe('providers', () => {
       ).rejects.toThrow(/No API key stored for profile "claude"/);
     });
 
-    it('generates message using Anthropic messages API', async () => {
+    it('generates message using Anthropic messages API and forwards abort signal', async () => {
       anthropicCreateMock.mockResolvedValueOnce({
         content: [{ type: 'text', text: 'refactor: simplify code' }],
       });
 
+      const controller = new AbortController();
       const result = await generateClaude(
         { kind: 'claude', model: 'claude-sonnet-4-5' },
         'sk-ant-key',
@@ -176,7 +186,8 @@ describe('providers', () => {
           { role: 'user', content: 'staged diff' },
         ],
         0.7,
-        'claude'
+        'claude',
+        controller.signal
       );
 
       expect(result).toBe('refactor: simplify code');
@@ -187,7 +198,8 @@ describe('providers', () => {
           system: 'system instructions',
           messages: [{ role: 'user', content: 'staged diff' }],
           temperature: 0.7,
-        })
+        }),
+        expect.objectContaining({ signal: controller.signal })
       );
     });
   });

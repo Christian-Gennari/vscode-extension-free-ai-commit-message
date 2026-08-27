@@ -13,15 +13,16 @@ export async function generateCommitMessage(
   profileName: string,
   apiKey: string | undefined,
   messages: ChatMessage[],
-  temperature?: number
+  temperature?: number,
+  abortSignal?: AbortSignal
 ): Promise<string> {
   switch (profile.kind) {
     case 'openai-compatible':
-      return generateOpenAICompatible(profile, apiKey, messages, temperature, profileName);
+      return generateOpenAICompatible(profile, apiKey, messages, temperature, profileName, abortSignal);
     case 'gemini':
       return generateGemini(profile, apiKey, messages, temperature, profileName);
     case 'claude':
-      return generateClaude(profile, apiKey, messages, temperature, profileName);
+      return generateClaude(profile, apiKey, messages, temperature, profileName, abortSignal);
     default:
       throw new Error(`Unsupported provider kind: ${(profile as any).kind}`);
   }

@@ -34,7 +34,8 @@
   "activationEvents": [
     "onCommand:aiCommitMessage.generateMessage",
     "onCommand:aiCommitMessage.selectProfile",
-    "onCommand:aiCommitMessage.setApiKey"
+    "onCommand:aiCommitMessage.setApiKey",
+    "onCommand:aiCommitMessage.showAvailableModels"
   ],
   "contributes": {
     "commands": [
@@ -143,15 +144,19 @@
     "build": "webpack --mode production --devtool hidden-source-map",
     "compile": "webpack",
     "compile-tests": "tsc -p . --outDir out",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src",
     "package": "vsce package --no-dependencies --allow-missing-repository",
     "publish": "vsce publish --no-dependencies",
-    "test": "vitest run",
+    "test": "vitest run --exclude 'test/ollama-smoke.test.ts'",
+    "test:smoke": "vitest run test/ollama-smoke.test.ts",
+    "test:all": "vitest run",
     "test:watch": "vitest",
     "vscode:prepublish": "npm run build",
     "watch": "webpack --watch"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.93.0",
+    "@google/generative-ai": "^0.24.1",
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^9.0.0",
     "@types/node": "25.x",
@@ -160,7 +165,10 @@
     "@typescript-eslint/parser": "^8.59.2",
     "@vscode/vsce": "^3.9.2",
     "eslint": "^10.3.0",
+    "fs-extra": "^11.3.4",
     "glob": "^13.0.6",
+    "openai": "^6.36.0",
+    "simple-git": "^3.36.0",
     "ts-loader": "^9.5.7",
     "typescript": "^6.0.3",
     "vitest": "^3.2.4",
