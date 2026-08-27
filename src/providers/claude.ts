@@ -1,0 +1,38 @@
+import Anthropic from '@anthropic-ai/sdk';
+import { ProviderProfile } from '../profiles';
+
+export async function generateClaude(
+  profile: ProviderProfile,
+  apiKey: string | undefined,
+  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  temperature?: number,
+  profileName: string = 'claude'
+): Promise<string> {
+  if (!apiKey) {
+    throw new Error(`No API key stored for profile "${profileName}". Run "Free AI Commit: Set API Key".`);
+  }
+
+  const anthropic = new Anthropic({ apiKey });
+
+  const systemMessage = messages.find((m) => m.role === 'system')?.content;
+  const userMessages = messages
+    .filter((m) => m.role !== 'system')
+    .map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }));
+
+  const response = await anthropic.messages.create({
+    model: profile.model,
+    max_tokens: 1024,
+    temperature: temperature ?? profile.temperature ?? 0.7,
+    system: systemMessage,
+    messages: userMessages,
+  });
+
+  const contentBlock = response.content[0];
+  if (contentBlock && contentBlock.type === 'text') {
+    return contentBlock.text;
+  }
+  throw new Error('No commit message returned from Claude.');
+}
