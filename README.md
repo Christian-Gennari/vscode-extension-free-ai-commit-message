@@ -2,9 +2,9 @@
 
 # Free AI Commit Message
 
-**Generate clean, conventional Git commit messages using free AI provider tiers (Gemini, Groq, OpenRouter), local Ollama, or bring your own key (DeepSeek, OpenAI, Claude).**
+**Generate clean, conventional Git commit messages using BYOK AI providers (Gemini, Groq, OpenRouter, DeepSeek, OpenAI, Claude) or offline local Ollama.**
 
-Works out-of-the-box with **Gemini (1,500 req/day free)**, **Groq (14,400 req/day free)**, **GitHub Models**, **OpenRouter**, and **100% offline local Ollama**, as well as DeepSeek, OpenAI, and Anthropic Claude.
+Connects directly using your own API keys—leveraging generous free daily quotas from **Gemini (1,500 req/day)**, **Groq (14,400 req/day)**, **GitHub Models**, and **OpenRouter**, or running **100% offline with local Ollama** (no key required). Also supports DeepSeek, OpenAI, and Anthropic Claude.
 
 [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/christiangennari.free-ai-commit-message?logo=visualstudiocode&label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.txt)

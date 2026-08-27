@@ -1,8 +1,8 @@
 {
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
-  "description": "Generate clean, conventional Git commit messages using free AI provider tiers (Gemini, Groq, OpenRouter), local Ollama, or bring your own key (DeepSeek, OpenAI, Claude).",
-  "version": "0.1.14",
+  "description": "Generate clean, conventional Git commit messages using BYOK providers (Gemini, Groq, OpenRouter, DeepSeek, OpenAI, Claude) or offline local Ollama.",
+  "version": "0.1.15",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
