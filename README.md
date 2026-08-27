@@ -6,7 +6,7 @@
 
 Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400 req/day free)**, **GitHub Models**, **OpenRouter**, and **100% offline local Ollama**, as well as DeepSeek, OpenAI, and Anthropic Claude.
 
-[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-v0.1.6-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
+[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-v0.1.7-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.txt)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message)
 
