@@ -13,7 +13,8 @@ export class CommandManager {
   constructor(private context: vscode.ExtensionContext) {}
 
   registerCommands() {
-    // Generate commit message command
+    // Generate commit message commands (support both generateCommitMsg and legacy generateMessage)
+    this.registerCommand('aiCommitMessage.generateCommitMsg', generateCommitMsg);
     this.registerCommand('aiCommitMessage.generateMessage', generateCommitMsg);
 
     // Select active profile command
@@ -93,6 +94,17 @@ export class CommandManager {
       }
     });
 
+    // Delete API key for active profile
+    this.registerCommand('aiCommitMessage.deleteApiKey', async () => {
+      const configManager = ConfigurationManager.getInstance();
+      const activeProfileName = configManager.getActiveProfileName();
+      const keyStore = KeyStore.getInstance();
+      await keyStore.delete(activeProfileName);
+      vscode.window.showInformationMessage(
+        `Free AI Commit: Deleted API key for profile "${activeProfileName}".`
+      );
+    });
+
     // Show available models for current OpenAI-compatible profile
     this.registerCommand('aiCommitMessage.showAvailableModels', async () => {
       const configManager = ConfigurationManager.getInstance();
@@ -139,13 +151,18 @@ export class CommandManager {
         await handler(...args);
       } catch (error: any) {
         Logger.error(`Command '${command}' failed:`, error?.message || error);
+        const errMsg = error?.message || String(error);
+        const isMissingKey = errMsg.includes('No API key') || errMsg.includes('API key required');
+
+        const actions = isMissingKey ? ['Set API Key', 'Configure'] : ['Retry', 'Configure'];
         const result = await vscode.window.showErrorMessage(
-          `Free AI Commit Failed: ${error?.message || error}`,
-          'Retry',
-          'Configure'
+          `Free AI Commit Failed: ${errMsg}`,
+          ...actions
         );
 
-        if (result === 'Retry') {
+        if (result === 'Set API Key') {
+          await vscode.commands.executeCommand('aiCommitMessage.setApiKey');
+        } else if (result === 'Retry') {
           // Wrapped retry ensures no unhandled rejection
           try {
             await executeWithRetry(...args);

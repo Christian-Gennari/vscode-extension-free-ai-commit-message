@@ -6,6 +6,7 @@ import { getDiffStaged } from './git-utils';
 import { truncateDiff } from './diff-utils';
 import { getMainCommitPrompt } from './prompts';
 import { generateCommitMessage, ChatMessage } from './providers';
+import { isLocalhost } from './profiles';
 import { KeyStore } from './secrets';
 import { ProgressHandler } from './utils';
 import { Logger } from './logger';
@@ -190,7 +191,36 @@ export async function generateCommitMsg(arg: any): Promise<void> {
 
     try {
       const keyStore = KeyStore.getInstance();
-      const apiKey = await keyStore.get(activeProfileName);
+      let apiKey = await keyStore.get(activeProfileName);
+
+      const isLocal =
+        profile.kind === 'openai-compatible' &&
+        Boolean(profile.baseUrl && isLocalhost(profile.baseUrl));
+
+      if (!apiKey && !isLocal) {
+        const placeholder =
+          activeProfileName === 'github'
+            ? 'GitHub Personal Access Token (ghp_...)'
+            : 'API key...';
+
+        const enteredKey = await vscode.window.showInputBox({
+          password: true,
+          prompt: `No API key configured for profile "${activeProfileName}". Enter API key to generate commit:`,
+          placeHolder: placeholder,
+          ignoreFocusOut: true,
+        });
+
+        if (enteredKey && enteredKey.trim() !== '') {
+          apiKey = enteredKey.trim();
+          await keyStore.set(activeProfileName, apiKey);
+          vscode.window.showInformationMessage(
+            `Free AI Commit: API key saved for profile "${activeProfileName}".`
+          );
+        } else {
+          throw new Error(`No API key configured for profile "${activeProfileName}". Run "Free AI Commit: Set API Key".`);
+        }
+      }
+
       const temperature = configManager.getConfig<number>(
         ConfigKeys.TEMPERATURE,
         profile.temperature ?? 0.7
