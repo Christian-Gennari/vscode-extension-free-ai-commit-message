@@ -17,13 +17,14 @@ describe('diff-utils', () => {
       expect(res.text).toBe(diff);
     });
 
-    it('truncates head and tail with marker when over limit', () => {
-      const diff = 'A'.repeat(50) + 'B'.repeat(50);
-      const res = truncateDiff(diff, 40, 'truncate');
+    it('truncates head and tail with marker and strictly respects maxChars budget', () => {
+      const diff = 'A'.repeat(500) + 'B'.repeat(500);
+      const limit = 200;
+      const res = truncateDiff(diff, limit, 'truncate');
       expect(res.truncated).toBe(true);
-      expect(res.text).toContain('... [diff truncated: 100 chars total] ...');
-      expect(res.text.startsWith('A'.repeat(24))).toBe(true);
-      expect(res.text.endsWith('B'.repeat(16))).toBe(true);
+      expect(res.text).toContain('... [diff truncated: 1000 chars total] ...');
+      // The total length of the truncated text must strictly not exceed maxChars limit
+      expect(res.text.length).toBeLessThanOrEqual(limit);
     });
 
     it('throws error when strategy is fail and limit exceeded', () => {

@@ -1,4 +1,5 @@
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { ConfigKeys, ConfigurationManager } from './config';
 import { getDiffStaged } from './git-utils';
@@ -44,13 +45,18 @@ export async function getRepo(arg: any): Promise<any> {
   }
 
   if (typeof arg === 'object' && arg?.rootUri) {
-    const resourceUri = arg.rootUri;
-    const realResourcePath: string = fs.realpathSync(resourceUri.fsPath);
-    for (let i = 0; i < gitApi.repositories.length; i++) {
-      const repo = gitApi.repositories[i];
-      if (realResourcePath.startsWith(repo.rootUri.fsPath)) {
-        return repo;
+    try {
+      const resourceUri = arg.rootUri;
+      const realResourcePath = fs.realpathSync(resourceUri.fsPath);
+      for (let i = 0; i < gitApi.repositories.length; i++) {
+        const repo = gitApi.repositories[i];
+        const repoRoot = repo.rootUri?.fsPath ? fs.realpathSync(repo.rootUri.fsPath) : '';
+        if (repoRoot && (realResourcePath === repoRoot || realResourcePath.startsWith(repoRoot + path.sep))) {
+          return repo;
+        }
       }
+    } catch (err: any) {
+      Logger.warn('Error resolving realpath for repository URI:', err?.message || err);
     }
   }
 
@@ -61,16 +67,59 @@ export async function getRepo(arg: any): Promise<any> {
   throw new Error('No Git repository found in workspace');
 }
 
+function normalizeErrorMessage(err: any, profileName: string): string {
+  if (err?.name === 'AbortError' || err?.message?.includes('aborted')) {
+    return 'Commit message generation was cancelled.';
+  }
+
+  const status = err?.status || err?.response?.status;
+  if (status) {
+    switch (status) {
+      case 400:
+        return `Bad request (${err.message || 'Invalid parameters'}) for profile "${profileName}".`;
+      case 401:
+        return `Invalid API key or unauthorized access for profile "${profileName}". Run "Free AI Commit: Set API Key".`;
+      case 403:
+        return `Access forbidden for profile "${profileName}". Check your account permissions or API key scope.`;
+      case 404:
+        return `Model or endpoint not found for profile "${profileName}". Verify model name in settings.`;
+      case 408:
+        return `Request timed out for profile "${profileName}".`;
+      case 429:
+        return `Rate limit exceeded for profile "${profileName}". Please wait before trying again.`;
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        return `Provider server error (${status}) for profile "${profileName}". Please try again later.`;
+    }
+  }
+
+  const code = err?.code;
+  if (code === 'ECONNREFUSED') {
+    return `Connection refused to provider for profile "${profileName}". If using local Ollama, ensure the server is running.`;
+  }
+  if (code === 'ENOTFOUND') {
+    return `Could not resolve provider host for profile "${profileName}". Check your network connection and baseUrl.`;
+  }
+
+  return (err instanceof Error && err.message) || (typeof err === 'string' ? err : 'An unexpected error occurred');
+}
+
 /**
  * Generates a commit message based on the changes staged in the repository.
  */
 export async function generateCommitMsg(arg: any): Promise<void> {
-  return ProgressHandler.withProgress('', async (progress) => {
+  return ProgressHandler.withProgress('', async (progress, token) => {
     const configManager = ConfigurationManager.getInstance();
     const repo = await getRepo(arg);
 
     const { name: activeProfileName, profile } = configManager.getActiveProfile();
     Logger.info(`Using active provider profile: "${activeProfileName}" (${profile.kind})`);
+
+    if (token.isCancellationRequested) {
+      return;
+    }
 
     progress.report({ message: 'Getting staged changes...' });
     const { diff, stat, fileList, error } = await getDiffStaged(repo);
@@ -94,22 +143,28 @@ export async function generateCommitMsg(arg: any): Promise<void> {
       'truncate'
     );
 
-    const truncation = truncateDiff(diff, maxDiffChars, diffStrategy);
+    let summaryExtra = '';
+    if (fileList.length > 0) {
+      summaryExtra += `\n\n---\nSummary of changed files:\n${fileList.slice(0, 50).join('\n')}`;
+      if (stat) {
+        summaryExtra += `\n${stat}`;
+      }
+    }
+
+    const diffBudget = Math.max(1000, maxDiffChars - summaryExtra.length);
+    const truncation = truncateDiff(diff, diffBudget, diffStrategy);
     if (truncation.truncated) {
       vscode.window.showWarningMessage(
         `Staged diff exceeded limit (${maxDiffChars} chars) and was truncated (head and tail preserved).`
       );
     }
 
-    let finalDiffText = truncation.text;
-    if (truncation.truncated && fileList.length > 0) {
-      finalDiffText += `\n\n---\nSummary of all changed files:\n${fileList.join('\n')}`;
-      if (stat) {
-        finalDiffText += `\n${stat}`;
-      }
-    }
-
+    const finalDiffText = truncation.truncated ? truncation.text + summaryExtra : truncation.text;
     const additionalContext = scmInputBox.value.trim();
+
+    if (token.isCancellationRequested) {
+      return;
+    }
 
     progress.report({
       message: additionalContext
@@ -128,6 +183,11 @@ export async function generateCommitMsg(arg: any): Promise<void> {
         : 'Generating commit message...',
     });
 
+    const abortController = new AbortController();
+    const cancelListener = token.onCancellationRequested(() => {
+      abortController.abort();
+    });
+
     try {
       const keyStore = KeyStore.getInstance();
       const apiKey = await keyStore.get(activeProfileName);
@@ -141,8 +201,13 @@ export async function generateCommitMsg(arg: any): Promise<void> {
         activeProfileName,
         apiKey,
         messages,
-        temperature
+        temperature,
+        abortController.signal
       );
+
+      if (token.isCancellationRequested) {
+        return;
+      }
 
       if (commitMessage) {
         commitMessage = commitMessage.replace(/<think>.*?<\/think>/gs, '').trim();
@@ -152,28 +217,16 @@ export async function generateCommitMsg(arg: any): Promise<void> {
         throw new Error('Failed to generate commit message');
       }
     } catch (err: any) {
-      Logger.error(`Provider "${activeProfileName}" generation failed:`, err);
-      let errorMessage =
-        (err instanceof Error && err.message) ||
-        (typeof err === 'string' ? err : 'An unexpected error occurred');
+      Logger.error(`Provider "${activeProfileName}" generation failed:`, {
+        message: err?.message,
+        code: err?.code,
+        status: err?.status,
+      });
 
-      if (err?.status) {
-        switch (err.status) {
-          case 401:
-            errorMessage = `Invalid API key or unauthorized access for profile "${activeProfileName}".`;
-            break;
-          case 429:
-            errorMessage = `Rate limit exceeded for profile "${activeProfileName}". Please try again later.`;
-            break;
-          case 500:
-          case 502:
-          case 503:
-            errorMessage = `Provider server error (${err.status}). Please try again later.`;
-            break;
-        }
-      }
-
-      throw new Error(errorMessage);
+      const userMessage = normalizeErrorMessage(err, activeProfileName);
+      throw new Error(userMessage);
+    } finally {
+      cancelListener.dispose();
     }
   });
 }

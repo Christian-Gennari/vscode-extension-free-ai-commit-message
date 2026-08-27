@@ -35,14 +35,13 @@ export function truncateDiff(
     );
   }
 
-  const head = Math.floor(maxChars * 0.6);
-  const tail = maxChars - head;
+  const marker = `\n... [diff truncated: ${diff.length} chars total] ...\n`;
+  const availableChars = Math.max(0, maxChars - marker.length);
+  const head = Math.floor(availableChars * 0.6);
+  const tail = availableChars - head;
 
   return {
-    text:
-      diff.slice(0, head) +
-      `\n... [diff truncated: ${diff.length} chars total] ...\n` +
-      diff.slice(-tail),
+    text: diff.slice(0, head) + marker + diff.slice(-tail),
     truncated: true,
   };
 }
