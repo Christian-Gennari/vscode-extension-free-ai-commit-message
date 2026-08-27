@@ -4,7 +4,7 @@ export class Logger {
   private static outputChannel: vscode.OutputChannel;
 
   static initialize() {
-    this.outputChannel = vscode.window.createOutputChannel('AI Commit');
+    this.outputChannel = vscode.window.createOutputChannel('Free AI Commit');
   }
 
   static info(message: string, ...args: any[]) {

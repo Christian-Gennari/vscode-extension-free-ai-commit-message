@@ -6,15 +6,14 @@ import * as vscode from 'vscode';
 export class ProgressHandler {
   static async withProgress<T>(
     title: string,
-    task: (
-      progress: vscode.Progress<{ message?: string; increment?: number }>
-    ) => Promise<T>
+    task: (progress: vscode.Progress<{ message?: string; increment?: number }>) => Promise<T>
   ): Promise<T> {
+    const displayTitle = title ? `[Free AI Commit] ${title}` : '[Free AI Commit]';
     return vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: `[AI Commit] ${title}`,
-        cancellable: true
+        title: displayTitle,
+        cancellable: true,
       },
       task
     );
