@@ -6,7 +6,7 @@
 
 Connects directly using your own API keys—leveraging generous free daily quotas from **Gemini (1,500 req/day)**, **Groq (14,400 req/day)**, **GitHub Models**, and **OpenRouter**, or running **100% offline with local Ollama** (no key required). Also supports DeepSeek, OpenAI, and Anthropic Claude.
 
-[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/christiangennari.free-ai-commit-message?logo=visualstudiocode&label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
+[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-Install-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.txt)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message)
 
