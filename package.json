@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate Conventional Commit messages from staged git changes. Bring-your-own-key: works with Groq, OpenRouter, DeepSeek, Ollama, OpenAI, Gemini and Claude. Free to use.",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
@@ -90,10 +90,10 @@
             "claude"
           ],
           "enumDescriptions": [
-            "Google AI Studio (Gemini 2.0 Flash Lite — Free tier: 30 RPM, 1,500 req/day)",
+            "Google AI Studio (Gemini 3.5 Flash Lite — Free tier: 30 RPM, 1,500 req/day)",
             "Groq Cloud (openai/gpt-oss-120b — Free tier on Groq LPU: 30 RPM, 14,400 req/day)",
             "GitHub Models (GPT-4o mini — Free tier with GitHub PAT: 15 RPM, 150 req/day)",
-            "OpenRouter (openrouter/free — Auto-routes across active free models)",
+            "OpenRouter (cohere/north-mini-code:free — Free dedicated code model)",
             "Ollama (Qwen 2.5 Coder 3B — 100% offline, local, free)",
             "DeepSeek (DeepSeek-V3 / deepseek-chat — BYOK)",
             "OpenAI (GPT-4o mini direct API — BYOK)",

@@ -12,12 +12,12 @@ export type ProfilesMap = Record<string, ProviderProfile>;
 export const DEFAULT_PROFILES: ProfilesMap = {
   gemini: {
     kind: 'gemini',
-    model: 'gemini-2.0-flash-lite',
+    model: 'gemini-3.5-flash-lite',
   },
   openrouter: {
     kind: 'openai-compatible',
     baseUrl: 'https://openrouter.ai/api/v1',
-    model: 'openrouter/free',
+    model: 'cohere/north-mini-code:free',
   },
   groq: {
     kind: 'openai-compatible',

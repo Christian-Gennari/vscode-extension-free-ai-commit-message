@@ -6,10 +6,10 @@ describe('profiles', () => {
     const resolved = resolveProfiles({});
     expect(resolved.gemini).toBeDefined();
     expect(resolved.gemini.kind).toBe('gemini');
-    expect(resolved.gemini.model).toBe('gemini-2.0-flash-lite');
+    expect(resolved.gemini.model).toBe('gemini-3.5-flash-lite');
 
     expect(resolved.openrouter).toBeDefined();
-    expect(resolved.openrouter.model).toBe('openrouter/free');
+    expect(resolved.openrouter.model).toBe('cohere/north-mini-code:free');
 
     expect(resolved.groq).toBeDefined();
     expect(resolved.groq.model).toBe('openai/gpt-oss-120b');
