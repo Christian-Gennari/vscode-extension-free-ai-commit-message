@@ -2,11 +2,11 @@
 
 # Free AI Commit Message
 
-**Generate Conventional Commit messages using generous free-tier AI models or local LLMs.**
+**Generate clean, conventional Git commit messages using free AI provider tiers (Gemini, Groq, OpenRouter), local Ollama, or bring your own key (DeepSeek, OpenAI, Claude).**
 
-Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400 req/day free)**, **GitHub Models**, **OpenRouter**, and **100% offline local Ollama**, as well as DeepSeek, OpenAI, and Anthropic Claude.
+Works out-of-the-box with **Gemini (1,500 req/day free)**, **Groq (14,400 req/day free)**, **GitHub Models**, **OpenRouter**, and **100% offline local Ollama**, as well as DeepSeek, OpenAI, and Anthropic Claude.
 
-[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-v0.1.13-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/christiangennari.free-ai-commit-message?logo=visualstudiocode&label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.txt)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message)
 
