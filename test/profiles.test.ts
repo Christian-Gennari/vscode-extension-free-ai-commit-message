@@ -2,20 +2,36 @@ import { describe, it, expect } from 'vitest';
 import { DEFAULT_PROFILES, resolveProfiles, assertValidProfile, isLocalhost } from '../src/profiles';
 
 describe('profiles', () => {
-  it('includes built-in default presets', () => {
+  it('includes built-in default presets with high-quota free tiers', () => {
     const resolved = resolveProfiles({});
+    expect(resolved.gemini).toBeDefined();
+    expect(resolved.gemini.kind).toBe('gemini');
+    expect(resolved.gemini.model).toBe('gemini-2.0-flash-lite');
+
+    expect(resolved.openrouter).toBeDefined();
+    expect(resolved.openrouter.model).toBe('openrouter/free');
+
+    expect(resolved.groq).toBeDefined();
+    expect(resolved.groq.model).toBe('llama-3.3-70b-versatile');
+
+    expect(resolved.ollama).toBeDefined();
+    expect(resolved.ollama.baseUrl).toBe('http://localhost:11434/v1');
+    expect(resolved.ollama.model).toBe('qwen2.5-coder:3b');
+
+    expect(resolved.github).toBeDefined();
+    expect(resolved.github.baseUrl).toBe('https://models.inference.ai.azure.com');
+    expect(resolved.github.model).toBe('gpt-4o-mini');
+
+    expect(resolved.deepseek).toBeDefined();
+    expect(resolved.deepseek.model).toBe('deepseek-chat');
+
     expect(resolved.openai).toBeDefined();
     expect(resolved.openai.kind).toBe('openai-compatible');
     expect(resolved.openai.model).toBe('gpt-4o-mini');
-    expect(resolved.groq).toBeDefined();
-    expect(resolved.openrouter).toBeDefined();
-    expect(resolved.deepseek).toBeDefined();
-    expect(resolved.ollama).toBeDefined();
-    expect(resolved.ollama.baseUrl).toBe('http://localhost:11434/v1');
-    expect(resolved.gemini).toBeDefined();
-    expect(resolved.gemini.kind).toBe('gemini');
+
     expect(resolved.claude).toBeDefined();
     expect(resolved.claude.kind).toBe('claude');
+    expect(resolved.claude.model).toBe('claude-3-5-haiku-20241022');
   });
 
   it('performs per-profile deep merge so partial overrides retain kind and baseUrl', () => {
@@ -29,10 +45,10 @@ describe('profiles', () => {
 
   it('allows user to define custom profiles', () => {
     const resolved = resolveProfiles({
-      local_qwen: { kind: 'openai-compatible', baseUrl: 'http://localhost:11434/v1', model: 'qwen2.5-coder:3b' },
+      local_qwen: { kind: 'openai-compatible', baseUrl: 'http://localhost:11434/v1', model: 'qwen2.5-coder:7b' },
     });
     expect(resolved.local_qwen).toBeDefined();
-    expect(resolved.local_qwen.model).toBe('qwen2.5-coder:3b');
+    expect(resolved.local_qwen.model).toBe('qwen2.5-coder:7b');
   });
 
   it('assertValidProfile validates profile kind, model, temperature, and protocols', () => {

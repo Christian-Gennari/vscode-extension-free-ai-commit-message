@@ -10,38 +10,43 @@ export interface ProviderProfile {
 export type ProfilesMap = Record<string, ProviderProfile>;
 
 export const DEFAULT_PROFILES: ProfilesMap = {
-  openai: {
+  gemini: {
+    kind: 'gemini',
+    model: 'gemini-2.0-flash-lite',
+  },
+  openrouter: {
     kind: 'openai-compatible',
-    baseUrl: 'https://api.openai.com/v1',
-    model: 'gpt-4o-mini',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    model: 'openrouter/free',
   },
   groq: {
     kind: 'openai-compatible',
     baseUrl: 'https://api.groq.com/openai/v1',
     model: 'llama-3.3-70b-versatile',
   },
-  openrouter: {
+  ollama: {
     kind: 'openai-compatible',
-    baseUrl: 'https://openrouter.ai/api/v1',
-    model: 'deepseek/deepseek-chat',
+    baseUrl: 'http://localhost:11434/v1',
+    model: 'qwen2.5-coder:3b',
+  },
+  github: {
+    kind: 'openai-compatible',
+    baseUrl: 'https://models.inference.ai.azure.com',
+    model: 'gpt-4o-mini',
   },
   deepseek: {
     kind: 'openai-compatible',
     baseUrl: 'https://api.deepseek.com',
     model: 'deepseek-chat',
   },
-  ollama: {
+  openai: {
     kind: 'openai-compatible',
-    baseUrl: 'http://localhost:11434/v1',
-    model: 'llama3.2',
-  },
-  gemini: {
-    kind: 'gemini',
-    model: 'gemini-2.0-flash',
+    baseUrl: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
   },
   claude: {
     kind: 'claude',
-    model: 'claude-sonnet-4-5',
+    model: 'claude-3-5-haiku-20241022',
   },
 };
 
