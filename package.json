@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate Conventional Commit messages from staged git changes. Bring-your-own-key: works with Groq, OpenRouter, DeepSeek, Ollama, OpenAI, Gemini and Claude. Free to use.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
@@ -96,7 +96,49 @@
         "aiCommitMessage.profiles": {
           "type": "object",
           "default": {},
-          "description": "Custom provider overrides or additional endpoints (optional). Built-in presets (gemini, groq, github, openrouter, ollama, deepseek, openai, claude) work out of the box."
+          "markdownDescription": "Custom provider overrides or additional endpoints (optional).\n\n**Example in `settings.json`:**\n```json\n\"aiCommitMessage.profiles\": {\n  \"my-custom-proxy\": {\n    \"kind\": \"openai-compatible\",\n    \"baseUrl\": \"http://localhost:1234/v1\",\n    \"model\": \"local-model-name\",\n    \"temperature\": 0.7\n  }\n}\n```\nPre-configured built-in presets (`gemini`, `groq`, `github`, `openrouter`, `ollama`, `deepseek`, `openai`, `claude`) work out of the box.",
+          "defaultSnippets": [
+            {
+              "label": "Custom OpenAI-compatible profile",
+              "description": "Add a custom OpenAI-compatible endpoint (e.g. LM Studio, vLLM, private proxy)",
+              "body": {
+                "${1:custom-profile}": {
+                  "kind": "openai-compatible",
+                  "baseUrl": "${2:http://localhost:1234/v1}",
+                  "model": "${3:model-name}",
+                  "temperature": 0.7
+                }
+              }
+            }
+          ],
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "openai-compatible",
+                  "gemini",
+                  "claude"
+                ],
+                "description": "Provider protocol ('openai-compatible', 'gemini', or 'claude')."
+              },
+              "baseUrl": {
+                "type": "string",
+                "description": "API Base URL (required for openai-compatible custom endpoints, e.g. 'http://localhost:1234/v1')."
+              },
+              "model": {
+                "type": "string",
+                "description": "Model identifier to invoke (e.g. 'llama-3.3-70b-versatile', 'gpt-4o', 'qwen2.5-coder:7b')."
+              },
+              "temperature": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2,
+                "description": "Sampling temperature override (0.0 to 2.0)."
+              }
+            }
+          }
         },
         "aiCommitMessage.language": {
           "type": "string",
