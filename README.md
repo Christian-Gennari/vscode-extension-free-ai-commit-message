@@ -17,14 +17,14 @@ Bring your own key: works seamlessly with local models (Ollama), generous free e
 
 | Profile | Kind | Default Base URL | Default Model | Free Tier Details |
 | :--- | :--- | :--- | :--- | :--- |
-| `gemini` | `gemini` | N/A | `gemini-2.0-flash-lite` | Google AI Studio free tier: 30 RPM, 1,500 requests/day, 1M TPM |
+| `gemini` | `gemini` | `https://generativelanguage.googleapis.com` | `gemini-2.0-flash-lite` | Google AI Studio free tier: 30 RPM, 1,500 requests/day, 1M TPM |
 | `openrouter` | `openai-compatible` | `https://openrouter.ai/api/v1` | `openrouter/free` | Auto-routes to currently available zero-cost free models on OpenRouter |
 | `groq` | `openai-compatible` | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | Groq Cloud free tier: 30 RPM, 14,400 requests/day, sub-second latency |
 | `ollama` | `openai-compatible` | `http://localhost:11434/v1` | `qwen2.5-coder:3b` | 100% offline, private, zero cost, coding specialist model |
 | `github` | `openai-compatible` | `https://models.inference.ai.azure.com` | `gpt-4o-mini` | GitHub Models free tier: uses standard GitHub Personal Access Token |
 | `deepseek` | `openai-compatible` | `https://api.deepseek.com` | `deepseek-chat` | Official DeepSeek V3 chat endpoint |
 | `openai` | `openai-compatible` | `https://api.openai.com/v1` | `gpt-4o-mini` | OpenAI Chat Completions endpoint |
-| `claude` | `claude` | N/A | `claude-3-5-haiku-20241022` | Anthropic Messages API endpoint |
+| `claude` | `claude` | `https://api.anthropic.com` | `claude-3-5-haiku-20241022` | Anthropic Messages API endpoint |
 
 Custom profiles can be configured via `aiCommitMessage.profiles`.
 
