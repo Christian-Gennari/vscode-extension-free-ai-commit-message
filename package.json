@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate Conventional Commit messages from staged git changes. Bring-your-own-key: works with Groq, OpenRouter, DeepSeek, Ollama, OpenAI, Gemini and Claude. Free to use.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
@@ -87,7 +87,7 @@
             "OpenAI (GPT-4o mini direct API — BYOK)",
             "Claude (Claude 3.5 Haiku — BYOK)"
           ],
-          "description": "Active AI provider profile. Use 'Free AI Commit: Set API Key for Active Profile' in Command Palette to configure your key."
+          "description": "Active AI provider profile. Note: API keys are NOT stored here in plain text. To set/change your key for the active profile, press 'Ctrl+Shift+P' and run 'Free AI Commit: Set API Key for Active Profile' (keys are saved separately per provider in VS Code's encrypted keychain)."
         },
         "aiCommitMessage.profiles": {
           "type": "object",

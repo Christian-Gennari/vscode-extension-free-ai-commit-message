@@ -43,6 +43,18 @@ export class CommandManager {
         vscode.window.showInformationMessage(
           `Free AI Commit: Active profile set to "${selected.label}".`
         );
+
+        const keyStore = KeyStore.getInstance();
+        const existingKey = await keyStore.get(selected.label);
+        if (!existingKey && selected.label !== 'ollama') {
+          const action = await vscode.window.showInformationMessage(
+            `No API key configured for profile "${selected.label}". Would you like to enter it now?`,
+            'Set API Key'
+          );
+          if (action === 'Set API Key') {
+            await vscode.commands.executeCommand('aiCommitMessage.setApiKey');
+          }
+        }
       }
     });
 
