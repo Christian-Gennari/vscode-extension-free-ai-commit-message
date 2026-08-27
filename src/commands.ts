@@ -47,7 +47,7 @@ export class CommandManager {
 
         const keyStore = KeyStore.getInstance();
         const existingKey = await keyStore.get(selected.label);
-        if (!existingKey && selected.label !== 'ollama') {
+        if (!existingKey && selected.label !== 'ollama' && selected.label !== 'free') {
           const action = await vscode.window.showInformationMessage(
             `No API key configured for profile "${selected.label}". Would you like to enter it now?`,
             'Set API Key'
@@ -65,7 +65,9 @@ export class CommandManager {
       const activeProfileName = configManager.getActiveProfileName();
 
       const placeholder =
-        activeProfileName === 'github'
+        activeProfileName === 'free'
+          ? 'Not required for Free Cloud profile (leave blank)'
+          : activeProfileName === 'github'
           ? 'GitHub Personal Access Token (ghp_...)'
           : activeProfileName === 'ollama'
           ? 'Not required for localhost (leave blank)'

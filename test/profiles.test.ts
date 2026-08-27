@@ -4,6 +4,11 @@ import { DEFAULT_PROFILES, resolveProfiles, assertValidProfile, isLocalhost } fr
 describe('profiles', () => {
   it('includes built-in default presets with high-quota free tiers', () => {
     const resolved = resolveProfiles({});
+    expect(resolved.free).toBeDefined();
+    expect(resolved.free.kind).toBe('openai-compatible');
+    expect(resolved.free.baseUrl).toBe('https://commit.cgennari.com/v1');
+    expect(resolved.free.model).toBe('free');
+
     expect(resolved.gemini).toBeDefined();
     expect(resolved.gemini.kind).toBe('gemini');
     expect(resolved.gemini.model).toBe('gemini-3.5-flash-lite');

@@ -6,7 +6,7 @@ import { getDiffStaged } from './git-utils';
 import { truncateDiff } from './diff-utils';
 import { getMainCommitPrompt } from './prompts';
 import { generateCommitMessage, ChatMessage } from './providers';
-import { isLocalhost } from './profiles';
+import { isLocalhost, isFreeProxy } from './profiles';
 import { KeyStore } from './secrets';
 import { ProgressHandler } from './utils';
 import { Logger } from './logger';
@@ -242,8 +242,12 @@ export async function generateCommitMsg(arg: any): Promise<void> {
       const isLocal =
         profile.kind === 'openai-compatible' &&
         Boolean(profile.baseUrl && isLocalhost(profile.baseUrl));
+      const isFree =
+        activeProfileName === 'free' ||
+        (profile.kind === 'openai-compatible' &&
+          Boolean(profile.baseUrl && isFreeProxy(profile.baseUrl)));
 
-      if (!apiKey && !isLocal) {
+      if (!apiKey && !isLocal && !isFree) {
         const placeholder =
           activeProfileName === 'github'
             ? 'GitHub Personal Access Token (ghp_...)'

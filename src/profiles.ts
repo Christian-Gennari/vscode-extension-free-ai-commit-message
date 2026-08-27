@@ -10,6 +10,11 @@ export interface ProviderProfile {
 export type ProfilesMap = Record<string, ProviderProfile>;
 
 export const DEFAULT_PROFILES: ProfilesMap = {
+  free: {
+    kind: 'openai-compatible',
+    baseUrl: 'https://commit.cgennari.com/v1',
+    model: 'free',
+  },
   gemini: {
     kind: 'gemini',
     model: 'gemini-3.5-flash-lite',
@@ -49,6 +54,18 @@ export const DEFAULT_PROFILES: ProfilesMap = {
     model: 'claude-3-5-haiku-20241022',
   },
 };
+
+export function isFreeProxy(urlStr?: string): boolean {
+  if (!urlStr) {
+    return false;
+  }
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.hostname.toLowerCase() === 'commit.cgennari.com';
+  } catch {
+    return false;
+  }
+}
 
 export function isLocalhost(urlStr?: string): boolean {
   if (!urlStr) {
