@@ -35,8 +35,9 @@ export async function generateGemini(
       : [],
   });
 
-  const lastUserMsg = userMessages[userMessages.length - 1]?.content || '';
-  const result = await chat.sendMessage(lastUserMsg);
+  // Preserve all user messages (including additional context + diff)
+  const combinedUserPrompt = userMessages.map((m) => m.content).join('\n\n');
+  const result = await chat.sendMessage(combinedUserPrompt);
   const response = await result.response;
   const text = response.text();
   if (!text) {
