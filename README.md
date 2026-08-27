@@ -6,7 +6,7 @@
 
 Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400 req/day free)**, **GitHub Models**, **OpenRouter**, and **100% offline local Ollama**, as well as DeepSeek, OpenAI, and Anthropic Claude.
 
-[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-v0.1.7-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
+[![Visual Studio Marketplace](https://img.shields.io/badge/VS%20Marketplace-v0.1.8-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=christiangennari.free-ai-commit-message)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.txt)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message)
 
@@ -25,7 +25,7 @@ Works out-of-the-box with **Google Gemini (1,500 req/day free)**, **Groq (14,400
    - Type and select: **`Free AI Commit: Set API Key for Active Profile`**
    - Paste your free API key. *(Keys are stored securely in VS Code's encrypted OS keychain, not in plain text).*
 3. **Generate your Commit Message:**
-   - Click the **✨ Sparkle icon** in the Source Control (SCM) panel, or run **`Free AI Commit: Generate Commit Message`**.
+   - Click the **✨ Sparkle icon** in the Source Control (SCM) panel, or run **`Free AI Commit: Generate AI Commit Message`**.
 
 ---
 
@@ -36,7 +36,7 @@ The extension defaults to **Google Gemini (`gemini-2.0-flash-lite`)** with zero 
 | Provider | Model | Free Daily Quota | Where to get Free Key |
 | :--- | :--- | :--- | :--- |
 | **Google Gemini** *(Default)* | `gemini-2.0-flash-lite` | **1,500 requests/day** (30 RPM) | [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| **Groq Cloud** | `llama-3.3-70b-versatile` | **14,400 requests/day** (30 RPM, ultra-fast) | [Groq Console](https://console.groq.com/keys) |
+| **Groq Cloud** | `openai/gpt-oss-120b` | **14,400 requests/day** (30 RPM, ultra-fast) | [Groq Console](https://console.groq.com/keys) |
 | **GitHub Models** | `gpt-4o-mini` | **150 requests/day** (15 RPM) | [GitHub Personal Access Tokens](https://github.com/settings/tokens) |
 | **OpenRouter Free** | `openrouter/free` | Auto-routes free models | [OpenRouter Keys](https://openrouter.ai/keys) |
 | **Ollama (Local)** | `qwen2.5-coder:3b` | **Unlimited (100% offline & private)** | *No key required!* [Install Ollama](https://ollama.com) |

@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate Conventional Commit messages from staged git changes. Bring-your-own-key: works with Groq, OpenRouter, DeepSeek, Ollama, OpenAI, Gemini and Claude. Free to use.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
@@ -36,35 +36,43 @@
     "url": "https://github.com/Christian-Gennari/vscode-extension-free-ai-commit-message.git"
   },
   "activationEvents": [
-    "onCommand:aiCommitMessage.generateMessage",
+    "onCommand:aiCommitMessage.generateCommitMsg",
     "onCommand:aiCommitMessage.selectProfile",
     "onCommand:aiCommitMessage.setApiKey",
-    "onCommand:aiCommitMessage.showAvailableModels"
+    "onCommand:aiCommitMessage.deleteApiKey"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "aiCommitMessage.generateMessage",
+        "command": "aiCommitMessage.generateCommitMsg",
+        "title": "Generate AI Commit Message",
         "category": "Free AI Commit",
-        "icon": "$(sparkle)",
-        "title": "Generate Commit Message"
-      },
-      {
-        "command": "aiCommitMessage.selectProfile",
-        "category": "Free AI Commit",
-        "title": "Select Provider Profile"
+        "icon": "$(sparkle)"
       },
       {
         "command": "aiCommitMessage.setApiKey",
-        "category": "Free AI Commit",
-        "title": "Set API Key for Active Profile"
+        "title": "Set API Key for Active Profile",
+        "category": "Free AI Commit"
       },
       {
-        "command": "aiCommitMessage.showAvailableModels",
-        "category": "Free AI Commit",
-        "title": "Show Available Models"
+        "command": "aiCommitMessage.deleteApiKey",
+        "title": "Delete API Key for Active Profile",
+        "category": "Free AI Commit"
+      },
+      {
+        "command": "aiCommitMessage.selectProfile",
+        "title": "Switch Active AI Profile",
+        "category": "Free AI Commit"
       }
     ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "aiCommitMessage.generateCommitMsg",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "Free AI Commit Message",
       "properties": {
@@ -83,7 +91,7 @@
           ],
           "enumDescriptions": [
             "Google AI Studio (Gemini 2.0 Flash Lite — Free tier: 30 RPM, 1,500 req/day)",
-            "Groq Cloud (Llama 3.3 70B — Free tier: 30 RPM, 14,400 req/day)",
+            "Groq Cloud (openai/gpt-oss-120b — Free tier on Groq LPU: 30 RPM, 14,400 req/day)",
             "GitHub Models (GPT-4o mini — Free tier with GitHub PAT: 15 RPM, 150 req/day)",
             "OpenRouter (openrouter/free — Auto-routes across active free models)",
             "Ollama (Qwen 2.5 Coder 3B — 100% offline, local, free)",
@@ -199,14 +207,6 @@
           "description": "Sampling temperature for all providers."
         }
       }
-    },
-    "menus": {
-      "scm/title": [
-        {
-          "command": "aiCommitMessage.generateMessage",
-          "group": "navigation"
-        }
-      ]
     }
   },
   "main": "./dist/extension.js",

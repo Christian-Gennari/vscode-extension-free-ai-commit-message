@@ -22,7 +22,7 @@ export const DEFAULT_PROFILES: ProfilesMap = {
   groq: {
     kind: 'openai-compatible',
     baseUrl: 'https://api.groq.com/openai/v1',
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
   },
   ollama: {
     kind: 'openai-compatible',

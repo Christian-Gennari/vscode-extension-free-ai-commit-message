@@ -82,7 +82,7 @@ function normalizeErrorMessage(err: any, profileName: string): string {
       case 403:
         return `Access forbidden for profile "${profileName}". Check your account permissions or API key scope.`;
       case 404:
-        return `Model or endpoint not found for profile "${profileName}". Verify model name in settings.`;
+        return `Model or endpoint not found for profile "${profileName}". ${err?.message ? `(${err.message})` : 'Verify model name and baseUrl in settings.'}`;
       case 408:
         return `Request timed out for profile "${profileName}".`;
       case 429:

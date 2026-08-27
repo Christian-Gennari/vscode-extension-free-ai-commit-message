@@ -12,7 +12,7 @@ describe('profiles', () => {
     expect(resolved.openrouter.model).toBe('openrouter/free');
 
     expect(resolved.groq).toBeDefined();
-    expect(resolved.groq.model).toBe('llama-3.3-70b-versatile');
+    expect(resolved.groq.model).toBe('openai/gpt-oss-120b');
 
     expect(resolved.ollama).toBeDefined();
     expect(resolved.ollama.baseUrl).toBe('http://localhost:11434/v1');
