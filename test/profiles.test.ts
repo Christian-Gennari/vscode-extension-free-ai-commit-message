@@ -18,12 +18,13 @@ describe('profiles', () => {
     expect(resolved.claude.kind).toBe('claude');
   });
 
-  it('allows user profiles to override default presets', () => {
+  it('performs per-profile deep merge so partial overrides retain kind and baseUrl', () => {
     const resolved = resolveProfiles({
-      openai: { kind: 'openai-compatible', baseUrl: 'https://custom.openai.com/v1', model: 'gpt-4o' },
+      openai: { model: 'gpt-4.1-mini' },
     });
-    expect(resolved.openai.baseUrl).toBe('https://custom.openai.com/v1');
-    expect(resolved.openai.model).toBe('gpt-4o');
+    expect(resolved.openai.model).toBe('gpt-4.1-mini');
+    expect(resolved.openai.kind).toBe('openai-compatible');
+    expect(resolved.openai.baseUrl).toBe('https://api.openai.com/v1');
   });
 
   it('allows user to define custom profiles', () => {
@@ -34,13 +35,16 @@ describe('profiles', () => {
     expect(resolved.local_qwen.model).toBe('qwen2.5-coder:3b');
   });
 
-  it('assertValidProfile validates profile kind and model', () => {
+  it('assertValidProfile validates profile kind, model, temperature, and protocols', () => {
     expect(() => assertValidProfile('valid', { kind: 'openai-compatible', model: 'gpt-4o' })).not.toThrow();
+    expect(() => assertValidProfile('', { kind: 'openai-compatible', model: 'gpt-4o' })).toThrow(/Profile name/);
     expect(() => assertValidProfile('missing', undefined)).toThrow(/not configured/);
     expect(() => assertValidProfile('invalid-kind', { kind: 'unsupported' as any, model: 'foo' })).toThrow(/invalid kind/);
     expect(() => assertValidProfile('missing-model', { kind: 'gemini', model: '' })).toThrow(/must specify a model/);
     expect(() => assertValidProfile('invalid-temp', { kind: 'gemini', model: 'gemini-2.0', temperature: 5 })).toThrow(/temperature/);
     expect(() => assertValidProfile('invalid-url', { kind: 'openai-compatible', model: 'gpt-4o', baseUrl: 'not a url' })).toThrow(/baseUrl/);
+    expect(() => assertValidProfile('ftp-url', { kind: 'openai-compatible', model: 'gpt-4o', baseUrl: 'ftp://example.com' })).toThrow(/protocol/);
+    expect(() => assertValidProfile('gemini-with-url', { kind: 'gemini', model: 'gemini-2.0', baseUrl: 'https://gemini.com' })).toThrow(/does not support custom baseUrl/);
   });
 
   it('isLocalhost correctly validates local hostnames and rejects lookalikes', () => {

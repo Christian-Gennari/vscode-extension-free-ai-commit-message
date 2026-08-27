@@ -110,7 +110,7 @@
           "type": "number",
           "default": 60000,
           "minimum": 1000,
-          "description": "Hard cap on diff bytes sent to the provider."
+          "description": "Hard cap on diff characters sent to the provider."
         },
         "aiCommitMessage.diffOverflowStrategy": {
           "type": "string",
@@ -155,8 +155,6 @@
     "watch": "webpack --watch"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.93.0",
-    "@google/generative-ai": "^0.24.1",
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^9.0.0",
     "@types/node": "25.x",
@@ -165,10 +163,7 @@
     "@typescript-eslint/parser": "^8.59.2",
     "@vscode/vsce": "^3.9.2",
     "eslint": "^10.3.0",
-    "fs-extra": "^11.3.4",
     "glob": "^13.0.6",
-    "openai": "^6.36.0",
-    "simple-git": "^3.36.0",
     "ts-loader": "^9.5.7",
     "typescript": "^6.0.3",
     "vitest": "^3.2.4",

@@ -58,39 +58,68 @@ export function isLocalhost(urlStr?: string): boolean {
   }
 }
 
-export function resolveProfiles(userProfiles: ProfilesMap = {}): ProfilesMap {
-  return { ...DEFAULT_PROFILES, ...userProfiles };
+export function resolveProfiles(userProfiles: Record<string, any> = {}): ProfilesMap {
+  if (!userProfiles || typeof userProfiles !== 'object' || Array.isArray(userProfiles)) {
+    return { ...DEFAULT_PROFILES };
+  }
+
+  const result: ProfilesMap = { ...DEFAULT_PROFILES };
+  for (const [name, custom] of Object.entries(userProfiles)) {
+    if (custom && typeof custom === 'object' && !Array.isArray(custom)) {
+      if (result[name]) {
+        // Deep/per-profile merge with existing default preset
+        result[name] = { ...result[name], ...custom };
+      } else {
+        result[name] = custom as ProviderProfile;
+      }
+    }
+  }
+  return result;
 }
 
 export function assertValidProfile(
   profileName: string,
   profile: unknown
 ): asserts profile is ProviderProfile {
-  if (!profile || typeof profile !== 'object') {
+  if (!profileName || typeof profileName !== 'string' || profileName.trim() === '') {
+    throw new Error('Profile name must be a non-empty string.');
+  }
+
+  if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
     throw new Error(`Profile "${profileName}" is not configured.`);
   }
+
   const p = profile as Partial<ProviderProfile>;
   if (!p.kind || !['openai-compatible', 'gemini', 'claude'].includes(p.kind)) {
     throw new Error(
       `Profile "${profileName}" has invalid kind "${p.kind}". Supported kinds: openai-compatible, gemini, claude.`
     );
   }
+
   if (!p.model || typeof p.model !== 'string' || p.model.trim() === '') {
     throw new Error(`Profile "${profileName}" must specify a model.`);
   }
+
   if (p.temperature !== undefined) {
     if (typeof p.temperature !== 'number' || isNaN(p.temperature) || p.temperature < 0 || p.temperature > 2) {
       throw new Error(`Profile "${profileName}" temperature must be a number between 0.0 and 2.0.`);
     }
   }
+
   if (p.baseUrl !== undefined) {
+    if (p.kind !== 'openai-compatible') {
+      throw new Error(`Profile "${profileName}" (${p.kind}) does not support custom baseUrl.`);
+    }
     if (typeof p.baseUrl !== 'string' || p.baseUrl.trim() === '') {
       throw new Error(`Profile "${profileName}" baseUrl must be a non-empty string URL.`);
     }
     try {
-      new URL(p.baseUrl);
-    } catch {
-      throw new Error(`Profile "${profileName}" baseUrl "${p.baseUrl}" is not a valid URL.`);
+      const parsed = new URL(p.baseUrl);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error(`Profile "${profileName}" baseUrl must use http: or https: protocol.`);
+      }
+    } catch (err: any) {
+      throw new Error(`Profile "${profileName}" baseUrl "${p.baseUrl}" is invalid: ${err.message}`);
     }
   }
 }

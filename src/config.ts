@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import OpenAI from 'openai';
-import { ProviderProfile, ProfilesMap, resolveProfiles, assertValidProfile } from './profiles';
+import { ProviderProfile, ProfilesMap, resolveProfiles, assertValidProfile, isLocalhost } from './profiles';
 import { Logger } from './logger';
 
 export enum ConfigKeys {
@@ -64,7 +64,7 @@ export class ConfigurationManager {
   async getAvailableOpenAIModels(baseUrl?: string, apiKey?: string): Promise<string[]> {
     try {
       const effectiveKey =
-        apiKey || (baseUrl && baseUrl.includes('localhost') ? 'dummy-key' : undefined);
+        apiKey || (baseUrl && isLocalhost(baseUrl) ? 'dummy-key' : undefined);
       if (!effectiveKey) {
         throw new Error('No API key provided to fetch model list.');
       }
@@ -75,7 +75,11 @@ export class ConfigurationManager {
       const models = await client.models.list();
       return models.data.map((m) => m.id);
     } catch (error: any) {
-      Logger.error('Failed to fetch OpenAI models:', error);
+      Logger.error('Failed to fetch OpenAI models:', {
+        message: error?.message,
+        code: error?.code,
+        status: error?.status,
+      });
       throw error;
     }
   }
