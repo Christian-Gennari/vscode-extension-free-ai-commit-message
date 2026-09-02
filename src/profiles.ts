@@ -22,7 +22,7 @@ export const DEFAULT_PROFILES: ProfilesMap = {
   openrouter: {
     kind: 'openai-compatible',
     baseUrl: 'https://openrouter.ai/api/v1',
-    model: 'cohere/north-mini-code:free',
+    model: 'openrouter/free',
   },
   groq: {
     kind: 'openai-compatible',
