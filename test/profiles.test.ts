@@ -1,15 +1,26 @@
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_PROFILES, resolveProfiles, assertValidProfile, isLocalhost } from '../src/profiles';
+import {
+  DEFAULT_PROFILES,
+  resolveProfiles,
+  assertValidProfile,
+  isLocalhost,
+  requiresApiKey,
+} from '../src/profiles';
 
 describe('profiles', () => {
   it('includes built-in default presets with high-quota free tiers', () => {
     const resolved = resolveProfiles({});
+    expect(resolved.free).toBeDefined();
+    expect(resolved.free.kind).toBe('openai-compatible');
+    expect(resolved.free.baseUrl).toBe('https://commit.cgennari.com/v1');
+    expect(resolved.free.model).toBe('free');
+
     expect(resolved.gemini).toBeDefined();
     expect(resolved.gemini.kind).toBe('gemini');
     expect(resolved.gemini.model).toBe('gemini-3.5-flash-lite');
 
     expect(resolved.openrouter).toBeDefined();
-    expect(resolved.openrouter.model).toBe('cohere/north-mini-code:free');
+    expect(resolved.openrouter.model).toBe('openrouter/free');
 
     expect(resolved.groq).toBeDefined();
     expect(resolved.groq.model).toBe('openai/gpt-oss-120b');
@@ -71,5 +82,35 @@ describe('profiles', () => {
     expect(isLocalhost('https://localhost.attacker.com/v1')).toBe(false);
     expect(isLocalhost('')).toBe(false);
     expect(isLocalhost(undefined)).toBe(false);
+  });
+
+  it('identifies which profiles require an API key from the resolved profile', () => {
+    const resolved = resolveProfiles({});
+
+    expect(requiresApiKey(resolved.free)).toBe(false);
+    expect(requiresApiKey(resolved.ollama)).toBe(false);
+    expect(requiresApiKey(resolved.gemini)).toBe(true);
+  });
+
+  it('requires a key when the free profile name is overridden with a paid profile', () => {
+    const resolved = resolveProfiles({
+      free: {
+        kind: 'openai-compatible',
+        baseUrl: 'https://api.openai.com/v1',
+        model: 'gpt-4o-mini',
+      },
+    });
+
+    expect(requiresApiKey(resolved.free)).toBe(true);
+  });
+
+  it('recognizes the free proxy even under a custom profile name', () => {
+    expect(
+      requiresApiKey({
+        kind: 'openai-compatible',
+        baseUrl: 'https://commit.cgennari.com/v1',
+        model: 'free',
+      })
+    ).toBe(false);
   });
 });

@@ -6,7 +6,7 @@ import { getDiffStaged } from './git-utils';
 import { truncateDiff } from './diff-utils';
 import { getMainCommitPrompt } from './prompts';
 import { generateCommitMessage, ChatMessage } from './providers';
-import { isLocalhost } from './profiles';
+import { ProviderProfile, isFreeProfile, requiresApiKey } from './profiles';
 import { KeyStore } from './secrets';
 import { ProgressHandler } from './utils';
 import { Logger } from './logger';
@@ -77,7 +77,11 @@ export async function getRepo(arg: any): Promise<any> {
   throw new Error('No Git repository found in workspace');
 }
 
-function normalizeErrorMessage(err: any, profileName: string): string {
+function normalizeErrorMessage(
+  err: any,
+  profileName: string,
+  profile?: ProviderProfile
+): string {
   if (err?.name === 'AbortError' || err?.message?.includes('aborted') || err?.message?.includes('cancelled')) {
     return 'Commit message generation was cancelled.';
   }
@@ -94,7 +98,9 @@ function normalizeErrorMessage(err: any, profileName: string): string {
       case 400:
         return `Bad request (${err.message || 'Invalid parameters'}) for profile "${profileName}".`;
       case 401:
-        return `Invalid API key or unauthorized access for profile "${profileName}". Run "Free AI Commit: Set API Key".`;
+        return isFreeProfile(profile)
+          ? `Unauthorized access for free profile "${profileName}".`
+          : `Invalid API key or unauthorized access for profile "${profileName}". Run "Free AI Commit: Set API Key".`;
       case 403:
         return `Access forbidden for profile "${profileName}". Check your account permissions or API key scope.`;
       case 404:
@@ -239,11 +245,7 @@ export async function generateCommitMsg(arg: any): Promise<void> {
       const keyStore = KeyStore.getInstance();
       let apiKey = await keyStore.get(activeProfileName);
 
-      const isLocal =
-        profile.kind === 'openai-compatible' &&
-        Boolean(profile.baseUrl && isLocalhost(profile.baseUrl));
-
-      if (!apiKey && !isLocal) {
+      if (requiresApiKey(profile)) {
         const placeholder =
           activeProfileName === 'github'
             ? 'GitHub Personal Access Token (ghp_...)'
@@ -320,7 +322,7 @@ export async function generateCommitMsg(arg: any): Promise<void> {
         status: err?.status,
       });
 
-      const userMessage = normalizeErrorMessage(err, activeProfileName);
+      const userMessage = normalizeErrorMessage(err, activeProfileName, profile);
       throw new Error(userMessage);
     } finally {
       cancelListener.dispose();

@@ -10,6 +10,11 @@ export interface ProviderProfile {
 export type ProfilesMap = Record<string, ProviderProfile>;
 
 export const DEFAULT_PROFILES: ProfilesMap = {
+  free: {
+    kind: 'openai-compatible',
+    baseUrl: 'https://commit.cgennari.com/v1',
+    model: 'free',
+  },
   gemini: {
     kind: 'gemini',
     model: 'gemini-3.5-flash-lite',
@@ -17,7 +22,7 @@ export const DEFAULT_PROFILES: ProfilesMap = {
   openrouter: {
     kind: 'openai-compatible',
     baseUrl: 'https://openrouter.ai/api/v1',
-    model: 'cohere/north-mini-code:free',
+    model: 'openrouter/free',
   },
   groq: {
     kind: 'openai-compatible',
@@ -50,6 +55,18 @@ export const DEFAULT_PROFILES: ProfilesMap = {
   },
 };
 
+export function isFreeProxy(urlStr?: string): boolean {
+  if (!urlStr) {
+    return false;
+  }
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.hostname.toLowerCase() === 'commit.cgennari.com';
+  } catch {
+    return false;
+  }
+}
+
 export function isLocalhost(urlStr?: string): boolean {
   if (!urlStr) {
     return false;
@@ -61,6 +78,22 @@ export function isLocalhost(urlStr?: string): boolean {
   } catch {
     return false;
   }
+}
+
+export function isFreeProfile(profile: ProviderProfile): boolean {
+  return (
+    profile.kind === 'openai-compatible' &&
+    Boolean(profile.baseUrl && isFreeProxy(profile.baseUrl))
+  );
+}
+
+export function requiresApiKey(profile: ProviderProfile): boolean {
+  const isLocal =
+    profile.kind === 'openai-compatible' &&
+    Boolean(profile.baseUrl && isLocalhost(profile.baseUrl));
+  const isFree = isFreeProfile(profile);
+
+  return !isLocal && !isFree;
 }
 
 export function resolveProfiles(userProfiles: Record<string, any> = {}): ProfilesMap {

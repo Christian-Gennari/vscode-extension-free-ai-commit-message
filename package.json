@@ -1,8 +1,8 @@
 {
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
-  "description": "Generate clean, conventional Git commit messages using BYOK providers (Gemini, Groq, OpenRouter, DeepSeek, OpenAI, Claude) or offline local Ollama.",
-  "version": "0.1.15",
+  "description": "Generate clean, conventional Git commit messages out of the box with zero setup, or connect your own free BYOK providers (Gemini, Groq, OpenRouter) and offline local Ollama.",
+  "version": "0.1.16",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
@@ -84,8 +84,9 @@
       "properties": {
         "aiCommitMessage.activeProfile": {
           "type": "string",
-          "default": "gemini",
+          "default": "free",
           "enum": [
+            "free",
             "gemini",
             "groq",
             "github",
@@ -96,6 +97,7 @@
             "claude"
           ],
           "enumDescriptions": [
+            "Free (No Setup Required) — Instant quick-start with zero API key configuration",
             "Google AI Studio (Gemini 3.5 Flash Lite — Free tier: 30 RPM, 1,500 req/day)",
             "Groq Cloud (openai/gpt-oss-120b — Free tier on Groq LPU: 30 RPM, 14,400 req/day)",
             "GitHub Models (GPT-4o mini — Free tier with GitHub PAT: 15 RPM, 150 req/day)",

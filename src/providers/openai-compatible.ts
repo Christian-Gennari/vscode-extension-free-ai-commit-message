@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
-import { ProviderProfile, isLocalhost } from '../profiles';
+import { ProviderProfile, requiresApiKey } from '../profiles';
+import { InvalidCommitMessageError } from '../output-cleanup';
 
 export async function generateOpenAICompatible(
   profile: ProviderProfile,
@@ -10,8 +11,7 @@ export async function generateOpenAICompatible(
   abortSignal?: AbortSignal,
   timeoutMs: number = 120000
 ): Promise<string> {
-  const effectiveKey =
-    apiKey || (profile.baseUrl && isLocalhost(profile.baseUrl) ? 'dummy-key' : undefined);
+  const effectiveKey = apiKey || (!requiresApiKey(profile) ? 'free-quickstart' : undefined);
 
   if (!effectiveKey) {
     throw new Error(`No API key stored for profile "${profileName}". Run "Free AI Commit: Set API Key".`);
@@ -34,7 +34,11 @@ export async function generateOpenAICompatible(
     }
   );
 
-  const content = completion.choices[0]?.message?.content;
+  const choice = completion.choices[0];
+  if (choice?.finish_reason === 'length') {
+    throw new InvalidCommitMessageError();
+  }
+  const content = choice?.message?.content;
   if (!content) {
     throw new Error('No commit message returned from OpenAI-compatible provider.');
   }
