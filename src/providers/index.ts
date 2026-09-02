@@ -1,6 +1,6 @@
-import { ProviderProfile } from '../profiles';
+import { FREE_FALLBACK_BASE_URL, isFreeProfile, ProviderProfile } from '../profiles';
 import { cleanAndValidateCommitMessage, InvalidCommitMessageError } from '../output-cleanup';
-import { generateOpenAICompatible } from './openai-compatible';
+import { generateOpenAICompatible, isRetryableProviderError } from './openai-compatible';
 import { generateGemini } from './gemini';
 import { generateClaude } from './claude';
 
@@ -39,12 +39,15 @@ export async function generateCommitMessage(
   abortSignal?: AbortSignal,
   timeoutMs: number = 120000
 ): Promise<string> {
+  const profiles = isFreeProfile(profile)
+    ? [profile, { ...profile, baseUrl: FREE_FALLBACK_BASE_URL }]
+    : [profile, profile];
   let lastInvalidOutput: InvalidCommitMessageError | undefined;
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < profiles.length; attempt += 1) {
     try {
       const rawMessage = await generateRawCommitMessage(
-        profile,
+        profiles[attempt],
         profileName,
         apiKey,
         messages,
@@ -54,10 +57,13 @@ export async function generateCommitMessage(
       );
       return cleanAndValidateCommitMessage(rawMessage);
     } catch (error) {
-      if (!(error instanceof InvalidCommitMessageError)) {
+      const mayRetry =
+        error instanceof InvalidCommitMessageError ||
+        (attempt === 0 && isFreeProfile(profile) && isRetryableProviderError(error));
+      if (!mayRetry || attempt >= profiles.length - 1) {
         throw error;
       }
-      lastInvalidOutput = error;
+      lastInvalidOutput = error as InvalidCommitMessageError;
     }
   }
 
