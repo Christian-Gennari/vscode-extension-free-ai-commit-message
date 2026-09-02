@@ -9,10 +9,13 @@ export interface ProviderProfile {
 
 export type ProfilesMap = Record<string, ProviderProfile>;
 
+export const FREE_PRIMARY_BASE_URL = 'https://commit.cgennari.com/v1';
+export const FREE_FALLBACK_BASE_URL = 'https://free-ai-commit-fallback.api-9d5.workers.dev/v1';
+
 export const DEFAULT_PROFILES: ProfilesMap = {
   free: {
     kind: 'openai-compatible',
-    baseUrl: 'https://commit.cgennari.com/v1',
+    baseUrl: FREE_PRIMARY_BASE_URL,
     model: 'free',
   },
   gemini: {
@@ -61,7 +64,9 @@ export function isFreeProxy(urlStr?: string): boolean {
   }
   try {
     const parsed = new URL(urlStr);
-    return parsed.hostname.toLowerCase() === 'commit.cgennari.com';
+    return ['commit.cgennari.com', 'free-ai-commit-fallback.api-9d5.workers.dev'].includes(
+      parsed.hostname.toLowerCase()
+    );
   } catch {
     return false;
   }

@@ -5,6 +5,7 @@ import { generateClaude } from '../src/providers/claude';
 import { generateCommitMessage } from '../src/providers/index';
 
 const createMock = vi.fn();
+const openAiOptions: any[] = [];
 vi.mock('openai', () => {
   return {
     default: class OpenAI {
@@ -13,7 +14,9 @@ vi.mock('openai', () => {
           create: createMock,
         },
       };
-      constructor(public options: any) {}
+      constructor(public options: any) {
+        openAiOptions.push(options);
+      }
     },
   };
 });
@@ -50,6 +53,7 @@ vi.mock('@anthropic-ai/sdk', () => {
 describe('providers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    openAiOptions.length = 0;
   });
 
   describe('openai-compatible', () => {
@@ -67,7 +71,7 @@ describe('providers', () => {
 
     it('allows missing api key for genuine localhost baseUrl', async () => {
       createMock.mockResolvedValueOnce({
-        choices: [{ message: { content: 'feat: add local ollama support' } }],
+        choices: [{ message: { content: '  feat: add local ollama support  ' } }],
       });
 
       const result = await generateOpenAICompatible(
@@ -179,6 +183,132 @@ describe('providers', () => {
         expect.anything(),
         expect.objectContaining({ signal: controller.signal })
       );
+    });
+    it('falls back to Cloudflare after a connection failure without forwarding credentials', async () => {
+      createMock
+        .mockRejectedValueOnce(Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' }))
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'fix: use fallback endpoint' } }] });
+
+      const result = await generateCommitMessage(
+        { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+        'free',
+        undefined,
+        [{ role: 'user', content: 'diff' }]
+      );
+
+      expect(result).toBe('fix: use fallback endpoint');
+      expect(openAiOptions.map((options) => options.baseURL)).toEqual([
+        'https://commit.cgennari.com/v1',
+        'https://free-ai-commit-fallback.api-9d5.workers.dev/v1',
+      ]);
+      expect(openAiOptions[1].defaultHeaders.Authorization).toBeNull();
+      expect(openAiOptions[1].apiKey).toBe('keyless');
+    });
+
+    it('does not fall back for an ordinary authorization error', async () => {
+      createMock.mockRejectedValueOnce(Object.assign(new Error('unauthorized'), { status: 401 }));
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).rejects.toThrow('unauthorized');
+      expect(createMock).toHaveBeenCalledTimes(1);
+      expect(openAiOptions).toHaveLength(1);
+    });
+
+    it.each([400, 403])('does not fall back for ordinary HTTP %s errors', async (status) => {
+      createMock.mockRejectedValueOnce(Object.assign(new Error(`http ${status}`), { status }));
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).rejects.toThrow(`http ${status}`);
+      expect(createMock).toHaveBeenCalledTimes(1);
+      expect(openAiOptions).toHaveLength(1);
+    });
+
+    it('falls back on rate limits and server errors', async () => {
+      createMock
+        .mockRejectedValueOnce(Object.assign(new Error('rate limited'), { status: 429 }))
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'fix: recover from rate limit' } }] });
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).resolves.toBe('fix: recover from rate limit');
+
+      createMock.mockReset();
+      openAiOptions.length = 0;
+      createMock
+        .mockRejectedValueOnce(Object.assign(new Error('server unavailable'), { status: 503 }))
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'fix: recover from server error' } }] });
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).resolves.toBe('fix: recover from server error');
+    });
+
+    it('falls back when primary output is invalid or truncated', async () => {
+      createMock
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'not a commit message' } }] })
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'feat: recover invalid output' } }] });
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).resolves.toBe('feat: recover invalid output');
+
+      createMock.mockReset();
+      openAiOptions.length = 0;
+      createMock
+        .mockResolvedValueOnce({ choices: [{ finish_reason: 'length', message: { content: 'feat: truncated' } }] })
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'feat: recover truncation' } }] });
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).resolves.toBe('feat: recover truncation');
+    });
+
+    it('never exposes an invalid fallback response to the caller', async () => {
+      createMock
+        .mockRejectedValueOnce(Object.assign(new Error('primary timeout'), { code: 'ETIMEDOUT' }))
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'analysis: plan then commit' } }] });
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).rejects.toThrow(/Invalid commit message returned by provider/);
+      expect(createMock).toHaveBeenCalledTimes(2);
     });
   });
 
