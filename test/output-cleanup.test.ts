@@ -9,6 +9,11 @@ describe('commit output cleanup', () => {
     expect(isValidConventionalCommitMessage('feat(proxy): add output validation')).toBe(true);
   });
 
+  it('accepts Gitmoji-prefixed conventional commit messages and preserves them', () => {
+    expect(cleanAndValidateCommitMessage('✨ feat: add output validation')).toBe('✨ feat: add output validation');
+    expect(cleanAndValidateCommitMessage(':sparkles: feat: add output validation')).toBe(':sparkles: feat: add output validation');
+  });
+
   it('preserves a valid multiline commit body', () => {
     const message = 'fix(proxy): reject invalid model output\n\nRetry another upstream when the model returns reasoning.';
     expect(cleanAndValidateCommitMessage(message)).toBe(message);
