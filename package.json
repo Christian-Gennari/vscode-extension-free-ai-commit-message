@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate clean, conventional Git commit messages out of the box with zero setup, or connect your own free BYOK providers (Gemini, Groq, OpenRouter) and offline local Ollama.",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
