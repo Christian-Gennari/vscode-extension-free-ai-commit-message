@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { ProviderProfile, requiresApiKey } from '../profiles';
+import { InvalidCommitMessageError } from '../output-cleanup';
 
 export async function generateOpenAICompatible(
   profile: ProviderProfile,
@@ -33,7 +34,11 @@ export async function generateOpenAICompatible(
     }
   );
 
-  const content = completion.choices[0]?.message?.content;
+  const choice = completion.choices[0];
+  if (choice?.finish_reason === 'length') {
+    throw new InvalidCommitMessageError();
+  }
+  const content = choice?.message?.content;
   if (!content) {
     throw new Error('No commit message returned from OpenAI-compatible provider.');
   }

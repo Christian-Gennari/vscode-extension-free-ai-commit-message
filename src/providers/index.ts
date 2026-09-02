@@ -1,4 +1,5 @@
 import { ProviderProfile } from '../profiles';
+import { cleanAndValidateCommitMessage, InvalidCommitMessageError } from '../output-cleanup';
 import { generateOpenAICompatible } from './openai-compatible';
 import { generateGemini } from './gemini';
 import { generateClaude } from './claude';
@@ -8,7 +9,7 @@ export interface ChatMessage {
   content: string;
 }
 
-export async function generateCommitMessage(
+async function generateRawCommitMessage(
   profile: ProviderProfile,
   profileName: string,
   apiKey: string | undefined,
@@ -27,4 +28,38 @@ export async function generateCommitMessage(
     default:
       throw new Error(`Unsupported provider kind: ${(profile as any).kind}`);
   }
+}
+
+export async function generateCommitMessage(
+  profile: ProviderProfile,
+  profileName: string,
+  apiKey: string | undefined,
+  messages: ChatMessage[],
+  temperature?: number,
+  abortSignal?: AbortSignal,
+  timeoutMs: number = 120000
+): Promise<string> {
+  let lastInvalidOutput: InvalidCommitMessageError | undefined;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const rawMessage = await generateRawCommitMessage(
+        profile,
+        profileName,
+        apiKey,
+        messages,
+        temperature,
+        abortSignal,
+        timeoutMs
+      );
+      return cleanAndValidateCommitMessage(rawMessage);
+    } catch (error) {
+      if (!(error instanceof InvalidCommitMessageError)) {
+        throw error;
+      }
+      lastInvalidOutput = error;
+    }
+  }
+
+  throw lastInvalidOutput ?? new InvalidCommitMessageError();
 }

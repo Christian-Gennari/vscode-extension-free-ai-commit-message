@@ -88,6 +88,50 @@ describe('providers', () => {
       );
     });
 
+    it('retries when the provider returns reasoning instead of a commit message', async () => {
+      createMock.mockReset();
+      createMock
+        .mockResolvedValueOnce({
+          choices: [{ message: { content: '<think>internal reasoning</think>\n\nfix: retry invalid output' } }],
+        })
+        .mockResolvedValueOnce({
+          choices: [{ message: { content: 'fix: retry invalid output' } }],
+        });
+
+      const result = await generateCommitMessage(
+        { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+        'free',
+        undefined,
+        [{ role: 'user', content: 'diff' }],
+        0.7
+      );
+
+      expect(result).toBe('fix: retry invalid output');
+      expect(createMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries when an OpenAI-compatible response is truncated', async () => {
+      createMock.mockReset();
+      createMock
+        .mockResolvedValueOnce({
+          choices: [{ finish_reason: 'length', message: { content: 'feat: add' } }],
+        })
+        .mockResolvedValueOnce({
+          choices: [{ finish_reason: 'stop', message: { content: 'feat: add employment report endpoint' } }],
+        });
+
+      const result = await generateCommitMessage(
+        { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+        'free',
+        undefined,
+        [{ role: 'user', content: 'diff' }],
+        0.7
+      );
+
+      expect(result).toBe('feat: add employment report endpoint');
+      expect(createMock).toHaveBeenCalledTimes(2);
+    });
+
     it('allows missing api key for the free proxy regardless of profile name', async () => {
       createMock.mockResolvedValueOnce({
         choices: [{ message: { content: 'feat: use free proxy' } }],
