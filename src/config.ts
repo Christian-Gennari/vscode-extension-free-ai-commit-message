@@ -8,11 +8,11 @@ export enum ConfigKeys {
   PROFILES = 'profiles',
   LANGUAGE = 'language',
   ENABLE_GITMOJI = 'enableGitmoji',
-  CUSTOM_SYSTEM_PROMPT = 'customSystemPrompt',
   MAX_DIFF_CHARACTERS = 'maxDiffCharacters',
   DIFF_OVERFLOW_STRATEGY = 'diffOverflowStrategy',
   TEMPERATURE = 'temperature',
   REQUEST_TIMEOUT_MS = 'requestTimeoutMs',
+  AUTO_RETRY_INVALID_OUTPUT = 'autoRetryInvalidOutput',
 }
 
 export class ConfigurationManager {

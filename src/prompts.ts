@@ -15,12 +15,9 @@ export const getMainCommitPrompt = async (): Promise<Message[]> => {
   const config = ConfigurationManager.getInstance();
   const language = config.getConfig<string>(ConfigKeys.LANGUAGE, 'English');
   const enableGitmoji = config.getConfig<boolean>(ConfigKeys.ENABLE_GITMOJI, false);
-  const customSystemPrompt = config.getConfig<string>(ConfigKeys.CUSTOM_SYSTEM_PROMPT, '');
-
   const content = buildSystemPrompt({
     language,
     gitmoji: enableGitmoji,
-    customPrompt: customSystemPrompt,
   });
 
   return [

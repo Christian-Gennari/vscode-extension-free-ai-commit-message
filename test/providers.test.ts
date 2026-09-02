@@ -295,10 +295,46 @@ describe('providers', () => {
       ).resolves.toBe('feat: recover truncation');
     });
 
+    it('retries invalid output after primary and fallback before succeeding', async () => {
+      createMock
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'not a commit message' } }] })
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'still not a commit message' } }] })
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'fix: recover after automatic retry' } }] });
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }]
+        )
+      ).resolves.toBe('fix: recover after automatic retry');
+      expect(createMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not retry invalid output when automatic retry is disabled', async () => {
+      createMock.mockResolvedValueOnce({ choices: [{ message: { content: 'not a commit message' } }] });
+
+      await expect(
+        generateCommitMessage(
+          { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+          'free',
+          undefined,
+          [{ role: 'user', content: 'diff' }],
+          undefined,
+          undefined,
+          120000,
+          false
+        )
+      ).rejects.toThrow(/Invalid commit message returned by provider/);
+      expect(createMock).toHaveBeenCalledTimes(1);
+    });
+
     it('never exposes an invalid fallback response to the caller', async () => {
       createMock
         .mockRejectedValueOnce(Object.assign(new Error('primary timeout'), { code: 'ETIMEDOUT' }))
-        .mockResolvedValueOnce({ choices: [{ message: { content: 'analysis: plan then commit' } }] });
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'analysis: plan then commit' } }] })
+        .mockResolvedValueOnce({ choices: [{ message: { content: 'still not a commit message' } }] });
 
       await expect(
         generateCommitMessage(
@@ -308,7 +344,7 @@ describe('providers', () => {
           [{ role: 'user', content: 'diff' }]
         )
       ).rejects.toThrow(/Invalid commit message returned by provider/);
-      expect(createMock).toHaveBeenCalledTimes(2);
+      expect(createMock).toHaveBeenCalledTimes(3);
     });
   });
 

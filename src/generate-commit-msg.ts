@@ -294,6 +294,11 @@ export async function generateCommitMsg(arg: any): Promise<void> {
         120000
       );
 
+      const autoRetryInvalidOutput = configManager.getConfig<boolean>(
+        ConfigKeys.AUTO_RETRY_INVALID_OUTPUT,
+        true
+      );
+
       let commitMessage = await generateCommitMessage(
         profile,
         activeProfileName,
@@ -301,7 +306,8 @@ export async function generateCommitMsg(arg: any): Promise<void> {
         messages,
         temperature,
         abortController.signal,
-        timeoutMs
+        timeoutMs,
+        autoRetryInvalidOutput
       );
 
       if (token.isCancellationRequested) {

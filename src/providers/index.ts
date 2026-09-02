@@ -37,12 +37,17 @@ export async function generateCommitMessage(
   messages: ChatMessage[],
   temperature?: number,
   abortSignal?: AbortSignal,
-  timeoutMs: number = 120000
+  timeoutMs: number = 120000,
+  autoRetryInvalidOutput: boolean = true
 ): Promise<string> {
   const profiles = isFreeProfile(profile)
-    ? [profile, { ...profile, baseUrl: FREE_FALLBACK_BASE_URL }]
+    ? [
+        profile,
+        { ...profile, baseUrl: FREE_FALLBACK_BASE_URL },
+        ...(autoRetryInvalidOutput ? [profile] : []),
+      ]
     : [profile, profile];
-  let lastInvalidOutput: InvalidCommitMessageError | undefined;
+  let lastError: unknown;
 
   for (let attempt = 0; attempt < profiles.length; attempt += 1) {
     try {
@@ -57,15 +62,16 @@ export async function generateCommitMessage(
       );
       return cleanAndValidateCommitMessage(rawMessage);
     } catch (error) {
+      lastError = error;
+      const invalidOutput = error instanceof InvalidCommitMessageError;
       const mayRetry =
-        error instanceof InvalidCommitMessageError ||
-        (attempt === 0 && isFreeProfile(profile) && isRetryableProviderError(error));
+        (invalidOutput && autoRetryInvalidOutput) ||
+        (!invalidOutput && attempt === 0 && isFreeProfile(profile) && isRetryableProviderError(error));
       if (!mayRetry || attempt >= profiles.length - 1) {
         throw error;
       }
-      lastInvalidOutput = error as InvalidCommitMessageError;
     }
   }
 
-  throw lastInvalidOutput ?? new InvalidCommitMessageError();
+  throw lastError ?? new InvalidCommitMessageError();
 }

@@ -2,7 +2,7 @@
   "name": "free-ai-commit-message",
   "displayName": "Free AI Commit Message",
   "description": "Generate clean, conventional Git commit messages out of the box with zero setup, or connect your own free BYOK providers (Gemini, Groq, OpenRouter) and offline local Ollama.",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "icon": "icon.png",
   "engines": {
     "node": ">=18",
@@ -187,11 +187,6 @@
           "default": false,
           "description": "Prefix commit types with gitmoji emoji. Defaults to plain Conventional Commits when off."
         },
-        "aiCommitMessage.customSystemPrompt": {
-          "type": "string",
-          "default": "",
-          "description": "Optional custom system prompt. Replaces the generated default prompt entirely. Use '\\n' for newlines."
-        },
         "aiCommitMessage.maxDiffCharacters": {
           "type": "number",
           "default": 60000,
@@ -220,6 +215,11 @@
           "minimum": 1000,
           "maximum": 600000,
           "description": "Maximum time in milliseconds to wait for an AI provider response."
+        },
+        "aiCommitMessage.autoRetryInvalidOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically retry when a provider returns invalid or badly formatted commit output. Strict validation remains enabled."
         }
       }
     }

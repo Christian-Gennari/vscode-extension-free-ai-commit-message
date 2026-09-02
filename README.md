@@ -71,7 +71,7 @@ Open VS Code Settings (`Ctrl+,` / `Cmd+,`) and search for **`Free AI Commit`**:
 | `aiCommitMessage.activeProfile` | `"free"` | Active provider preset (`free`, `gemini`, `groq`, `github`, `openrouter`, `ollama`, `deepseek`, `openai`, `claude`). |
 | `aiCommitMessage.language` | `"English"` | Output language (supports 19 languages). |
 | `aiCommitMessage.enableGitmoji` | `false` | Prefix conventional commit types with Gitmoji symbols (e.g. `feat:`, `fix:`). |
-| `aiCommitMessage.customSystemPrompt` | `""` | Optional system prompt override. |
+| `aiCommitMessage.autoRetryInvalidOutput` | `true` | Automatically retry invalid or badly formatted provider output. Strict validation remains enabled. |
 | `aiCommitMessage.maxDiffCharacters` | `60000` | Safety limit on diff size sent to LLM (minimum 1000). |
 | `aiCommitMessage.diffOverflowStrategy` | `"truncate"` | `truncate` keeps diff head+tail; `fail` aborts with error. |
 | `aiCommitMessage.temperature` | `0.7` | Sampling temperature (0.0 to 2.0). |

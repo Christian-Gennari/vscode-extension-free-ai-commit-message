@@ -3,30 +3,26 @@ import { buildSystemPrompt } from '../src/prompt-builder';
 
 describe('buildSystemPrompt', () => {
   it('defaults to plain Conventional Commits (no emoji)', () => {
-    const p = buildSystemPrompt({ language: 'English', gitmoji: false, customPrompt: '' });
+    const p = buildSystemPrompt({ language: 'English', gitmoji: false });
     expect(p).toContain('<type>(<scope>): <subject>');
     expect(p).not.toContain('<emoji>');
     expect(p).toContain('feat');
   });
 
   it('adds emoji when gitmoji enabled', () => {
-    const p = buildSystemPrompt({ language: 'English', gitmoji: true, customPrompt: '' });
+    const p = buildSystemPrompt({ language: 'English', gitmoji: true });
     expect(p).toContain('<emoji> <type>(<scope>): <subject>');
     expect(p).toContain('✨');
   });
 
   it('interpolates language into writing rules', () => {
-    const p = buildSystemPrompt({ language: 'Swedish', gitmoji: false, customPrompt: '' });
+    const p = buildSystemPrompt({ language: 'Swedish', gitmoji: false });
     expect(p).toContain('Must be in Swedish');
   });
 
-  it('custom prompt replaces everything', () => {
-    const p = buildSystemPrompt({ language: 'English', gitmoji: false, customPrompt: 'Be terse.' });
-    expect(p).toBe('Be terse.');
-  });
-
-  it('supports multiline custom prompts with escaped newlines', () => {
-    const p = buildSystemPrompt({ language: 'English', gitmoji: false, customPrompt: 'Line1\\nLine2' });
-    expect(p).toBe('Line1\nLine2');
+  it('always includes the fixed output contract', () => {
+    const p = buildSystemPrompt({ language: 'English', gitmoji: false });
+    expect(p).toContain('you will ONLY output the commit message itself');
+    expect(p).toContain('Output ONLY the commit message');
   });
 });

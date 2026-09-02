@@ -1,15 +1,10 @@
 export interface PromptOptions {
   language?: string;
   gitmoji?: boolean;
-  customPrompt?: string;
 }
 
 export function buildSystemPrompt(options: PromptOptions = {}): string {
-  const { language = 'English', gitmoji = false, customPrompt = '' } = options;
-
-  if (customPrompt && customPrompt.trim().length > 0) {
-    return customPrompt.replace(/\\n/g, '\n');
-  }
+  const { language = 'English', gitmoji = false } = options;
 
   const lang = language || 'English';
 
