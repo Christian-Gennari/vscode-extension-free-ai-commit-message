@@ -80,6 +80,22 @@ export function isLocalhost(urlStr?: string): boolean {
   }
 }
 
+export function isFreeProfile(profile: ProviderProfile): boolean {
+  return (
+    profile.kind === 'openai-compatible' &&
+    Boolean(profile.baseUrl && isFreeProxy(profile.baseUrl))
+  );
+}
+
+export function requiresApiKey(profile: ProviderProfile): boolean {
+  const isLocal =
+    profile.kind === 'openai-compatible' &&
+    Boolean(profile.baseUrl && isLocalhost(profile.baseUrl));
+  const isFree = isFreeProfile(profile);
+
+  return !isLocal && !isFree;
+}
+
 export function resolveProfiles(userProfiles: Record<string, any> = {}): ProfilesMap {
   if (!userProfiles || typeof userProfiles !== 'object' || Array.isArray(userProfiles)) {
     return { ...DEFAULT_PROFILES };

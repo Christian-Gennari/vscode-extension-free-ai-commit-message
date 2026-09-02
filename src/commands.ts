@@ -3,6 +3,8 @@ import { generateCommitMsg } from './generate-commit-msg';
 import { ConfigKeys, ConfigurationManager } from './config';
 import { KeyStore } from './secrets';
 import { Logger } from './logger';
+import { getCommandErrorActions } from './error-actions';
+import { requiresApiKey } from './profiles';
 
 /**
  * Manages the registration and disposal of extension commands.
@@ -47,7 +49,7 @@ export class CommandManager {
 
         const keyStore = KeyStore.getInstance();
         const existingKey = await keyStore.get(selected.label);
-        if (!existingKey && selected.label !== 'ollama' && selected.label !== 'free') {
+        if (!existingKey && requiresApiKey(profiles[selected.label])) {
           const action = await vscode.window.showInformationMessage(
             `No API key configured for profile "${selected.label}". Would you like to enter it now?`,
             'Set API Key'
@@ -160,26 +162,8 @@ export class CommandManager {
           return;
         }
 
-        const isMissingKey =
-          errMsg.includes('No API key') ||
-          errMsg.includes('API key required') ||
-          errMsg.includes('Invalid API key') ||
-          errMsg.includes('unauthorized');
-
-        const isTransient =
-          errMsg.includes('timed out') ||
-          errMsg.includes('Rate limit') ||
-          errMsg.includes('server error') ||
-          errMsg.includes('timeout') ||
-          errMsg.includes('connection');
-
-        const actions: string[] = [];
-        if (isMissingKey) {
-          actions.push('Set API Key');
-        } else if (isTransient) {
-          actions.push('Retry');
-        }
-        actions.push('Configure');
+        const activeProfile = ConfigurationManager.getInstance().getActiveProfile();
+        const actions = getCommandErrorActions(errMsg, requiresApiKey(activeProfile.profile));
 
         const result = await vscode.window.showErrorMessage(
           `Free AI Commit Failed: ${errMsg}`,

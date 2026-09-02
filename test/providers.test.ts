@@ -88,6 +88,22 @@ describe('providers', () => {
       );
     });
 
+    it('allows missing api key for the free proxy regardless of profile name', async () => {
+      createMock.mockResolvedValueOnce({
+        choices: [{ message: { content: 'feat: use free proxy' } }],
+      });
+
+      const result = await generateOpenAICompatible(
+        { kind: 'openai-compatible', baseUrl: 'https://commit.cgennari.com/v1', model: 'free' },
+        undefined,
+        [{ role: 'user', content: 'diff' }],
+        0.7,
+        'custom-free-proxy'
+      );
+
+      expect(result).toBe('feat: use free proxy');
+    });
+
     it('rejects missing api key for lookalike localhost domain', async () => {
       await expect(
         generateOpenAICompatible(

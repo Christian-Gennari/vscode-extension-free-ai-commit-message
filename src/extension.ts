@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { CommandManager } from './commands';
 import { ConfigurationManager } from './config';
 import { KeyStore, migrateLegacyKeys } from './secrets';
-import { isLocalhost } from './profiles';
+import { requiresApiKey } from './profiles';
 import { Logger } from './logger';
 
 /**
@@ -41,11 +41,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // Check if the active profile requires an API key (safe, resilient, no network calls)
     try {
       const { name: activeProfileName, profile } = configManager.getActiveProfile();
-      const isLocal =
-        profile.kind === 'openai-compatible' &&
-        Boolean(profile.baseUrl && isLocalhost(profile.baseUrl));
-
-      if (!isLocal) {
+      if (requiresApiKey(profile)) {
         const storedKey = await keyStore.get(activeProfileName);
         if (!storedKey) {
           vscode.window

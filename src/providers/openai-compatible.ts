@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { ProviderProfile, isLocalhost, isFreeProxy } from '../profiles';
+import { ProviderProfile, requiresApiKey } from '../profiles';
 
 export async function generateOpenAICompatible(
   profile: ProviderProfile,
@@ -10,9 +10,7 @@ export async function generateOpenAICompatible(
   abortSignal?: AbortSignal,
   timeoutMs: number = 120000
 ): Promise<string> {
-  const isFree = profileName === 'free' || (profile.baseUrl && isFreeProxy(profile.baseUrl));
-  const isLocal = profile.baseUrl && isLocalhost(profile.baseUrl);
-  const effectiveKey = apiKey || (isLocal || isFree ? 'free-quickstart' : undefined);
+  const effectiveKey = apiKey || (!requiresApiKey(profile) ? 'free-quickstart' : undefined);
 
   if (!effectiveKey) {
     throw new Error(`No API key stored for profile "${profileName}". Run "Free AI Commit: Set API Key".`);
