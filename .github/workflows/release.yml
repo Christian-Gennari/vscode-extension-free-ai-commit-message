@@ -46,29 +46,31 @@ jobs:
       - name: Package extension
         run: npm run package
 
+      - name: Select the packaged VSIX
+        id: vsix
+        run: |
+          # *.vsix is gitignored, so exactly one should exist here. Fail loudly
+          # rather than guessing if that assumption ever breaks.
+          mapfile -t files < <(ls -1 ./*.vsix 2>/dev/null || true)
+          if [ "${#files[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one .vsix, found ${#files[@]}: ${files[*]}"
+            exit 1
+          fi
+          echo "path=${files[0]}" >> "$GITHUB_OUTPUT"
+          echo "Selected ${files[0]}"
+
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
           name: extension-vsix
-          path: '*.vsix'
+          path: ${{ steps.vsix.outputs.path }}
 
       - name: Publish to VS Code Marketplace
         if: github.event_name == 'push' || inputs.dry_run == false
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: |
-          set +e
-          npx vsce publish --no-dependencies --packagePath "$(ls -1 *.vsix | head -n1)" 2>&1 | tee /tmp/publish.log
-          status=${PIPESTATUS[0]}
-          if [ "${status}" -eq 0 ]; then
-            echo "Published to the VS Code Marketplace."
-            exit 0
-          fi
-          # A re-run, or a tag pushed twice, must not fail the build just
-          # because the version is already live.
-          if grep -qiE "already exists|already published|Version .* already" /tmp/publish.log; then
-            echo "::notice::This version is already published on the Marketplace; nothing to do."
-            exit 0
-          fi
-          echo "::error::Publishing to the VS Code Marketplace failed."
-          exit "${status}"
+          # --skip-duplicate makes re-runs and repeated tag pushes succeed
+          # natively; a bad or expired PAT still fails the build.
+          npx vsce publish --no-dependencies --skip-duplicate \
+            --packagePath "${{ steps.vsix.outputs.path }}"
