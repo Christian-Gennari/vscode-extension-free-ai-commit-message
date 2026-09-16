@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Build and verify only; skip publishing to the Marketplace'
+        type: boolean
+        default: false
+
+jobs:
+  release:
+    name: Publish to VS Code Marketplace
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - run: npm ci
+
+      # A tag that disagrees with package.json would publish the wrong version,
+      # or fail late after a full build, so fail fast.
+      - name: Verify tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "tag=${TAG} package.json=${VERSION}"
+          if [ "${TAG}" != "${VERSION}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${VERSION}. Bump the version or fix the tag."
+            exit 1
+          fi
+
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+      - name: Package extension
+        run: npm run package
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-vsix
+          path: '*.vsix'
+
+      - name: Publish to VS Code Marketplace
+        if: github.event_name == 'push' || inputs.dry_run == false
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set +e
+          npx vsce publish --no-dependencies --packagePath "$(ls -1 *.vsix | head -n1)" 2>&1 | tee /tmp/publish.log
+          status=${PIPESTATUS[0]}
+          if [ "${status}" -eq 0 ]; then
+            echo "Published to the VS Code Marketplace."
+            exit 0
+          fi
+          # A re-run, or a tag pushed twice, must not fail the build just
+          # because the version is already live.
+          if grep -qiE "already exists|already published|Version .* already" /tmp/publish.log; then
+            echo "::notice::This version is already published on the Marketplace; nothing to do."
+            exit 0
+          fi
+          echo "::error::Publishing to the VS Code Marketplace failed."
+          exit "${status}"
